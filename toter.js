@@ -128,6 +128,8 @@ switch(command) {
         ], () => {
             settings.regions.default = newRegion
             fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {flag: 'w'})
+            rl.close()
+
         })
         break;
     case 'setup':
@@ -185,6 +187,7 @@ switch(command) {
                 stripFields(config.widget_json)
 
                 fs.writeFileSync('config.json', JSON.stringify(config, null, 4))
+                rl.close()
             })
         } else {
             console.log('Cannot setup - config contains settings already')
@@ -259,5 +262,3 @@ switch(command) {
         process.exit();
         break;
 }
-
-rl.close()
