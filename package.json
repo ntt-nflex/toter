@@ -1,6 +1,6 @@
 {
   "name": "toter",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "Toter Client and Command Line Tools for publishing apps/widgets to Marketplace",
   "main": "./toter.js",
   "bin": {
