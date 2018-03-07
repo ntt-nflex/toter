@@ -23,7 +23,7 @@ try {
 }
 
 const originalConfig = JSON.stringify(config, null, 4)
-const command        = argv._[0]
+const command        = argv._[0] || 'help'
 const entry          = 'index.html'
 const folder         = 'dist'
 let setupError       = false
@@ -45,7 +45,7 @@ const strippedFields = [
     'distribution'
 ]
 
-if(command !== 'config') {
+if(!['help', 'config'].includes(command)) {
     if(settings && !settings.regions) {
         console.log('Please run config')
         setupError = true
@@ -129,7 +129,6 @@ switch(command) {
             settings.regions.default = newRegion
             fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {flag: 'w'})
             rl.close()
-
         })
         break;
     case 'setup':
