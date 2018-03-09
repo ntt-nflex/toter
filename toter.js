@@ -6,6 +6,7 @@ const { execSync }   = require('child_process')
 const fs             = require('fs');
 const readline       = require('readline');
 const async          = require('async');
+const _              = require('lodash-fp');
 const settingsPath   = getUserHome() + '/.toter.json'
 
 let config
@@ -45,6 +46,18 @@ const strippedFields = [
     'distribution'
 ]
 
+const isIP = (url) => {
+    const urlArray = url.split('.');
+    if(urlArray.length !== 4) {
+        return false;
+    }
+
+    return _.flow(
+        _.map((piece) => Number(piece) !== NaN),
+        _.reduce((acc, val) => acc ? acc : val)(false)
+    )(urlArray);
+};
+
 if(!['help', 'config'].includes(command)) {
     if(settings && !settings.regions) {
         console.log('Please run config')
@@ -82,7 +95,9 @@ function curlHelper(api, data, method = 'post', contentType = 'json') {
     const tar1 = (contentType === 'x-tar') ? 'tar -vC ' + folder + ' -c . | ' : ''
     const tar2 = (contentType === 'x-tar') ? '-T -' : ''
     const dataString = (data) ? '-d \'' + JSON.stringify(data) + '\'' : ''
-    const secureString = region.split('.').length === 4 ? '-k ': ''
+    const secureString = isIP(region) ? '-k ': ''
+
+    console.log(secureString);
 
     return execSync(
         tar1 +

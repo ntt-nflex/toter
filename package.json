@@ -28,6 +28,7 @@
   "preferGlobal": "true",
   "dependencies": {
     "async": "^2.6.0",
+    "lodash-fp": "~0.10.4",
     "minimist": "^1.2.0"
   }
 }
