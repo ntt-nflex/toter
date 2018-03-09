@@ -82,12 +82,12 @@ function curlHelper(api, data, method = 'post', contentType = 'json') {
     const tar1 = (contentType === 'x-tar') ? 'tar -vC ' + folder + ' -c . | ' : ''
     const tar2 = (contentType === 'x-tar') ? '-T -' : ''
     const dataString = (data) ? '-d \'' + JSON.stringify(data) + '\'' : ''
-
+    const secureString = region.split('.').length === 4 ? '-k ': ''
 
     return execSync(
         tar1 +
         'curl -u ' + key + ':' + secret + ' ' +
-        'https://' + region + '/cmp/basic' + api + ' ' +
+        'https://' + region + '/cmp/basic' + api + ' ' + secureString +
         '-X ' + method.toUpperCase() + ' ' +
         '-H "Content-Type:application/' + contentType + '" ' +
         dataString +
@@ -196,12 +196,15 @@ switch(command) {
         if(!config.widget_json || config.widget_json && !config.widget_json.id) {
             console.log('Please run setup first - widget has no ID')
         } else {
-            config.widget_json.source = JSON.parse(curlHelper('/api/apps/widgets/' + config.widget_json.id, Object.assign({}, widgetDefaults, config.widget_json, {
-                app_id: config.app_json.id,
+            let curlObj = Object.assign({}, widgetDefaults, config.widget_json, {
                 type: 'marketplace',
                 source: '/cmp/api/storage/buckets/' + config.widget_json.id + '/' + entry
-            }), 'put')).source
+            });
 
+            let widgetID = curlObj.id;
+            delete curlObj.id;
+            let curlData = curlHelper('/api/apps/widgets/' + config.widget_json.id, curlObj, 'put');
+            config.widget_json = Object.assign({id: widgetID}, JSON.parse(curlData));
             stripFields(config.widget_json)
         }
 
@@ -261,3 +264,4 @@ switch(command) {
         process.exit();
         break;
 }
+process.exit();
