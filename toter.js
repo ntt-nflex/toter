@@ -188,15 +188,19 @@ switch(command) {
                     source: 'test'
                 })))
 
+                stripFields(config.widget_json)
+                const widgetid = config.widget_json.id
+                delete config.widget_json.id
+
                 curlHelper('/api/storage/buckets/' + config.widget_json.id, {
                     type: 'public'
                 }, 'put')
 
-                config.widget_json.source = JSON.parse(curlHelper('/api/apps/widgets/' + config.widget_json.id, Object.assign({}, widgetDefaults, config.widget_json, {
-                    app_id: config.app_json.id,
+                config.widget_json = JSON.parse(curlHelper('/api/apps/widgets/' + widgetid, Object.assign({}, widgetDefaults, config.widget_json, {
                     type: 'marketplace',
-                    source: '/cmp/api/storage/buckets/' + config.widget_json.id + '/' + entry
-                }), 'put')).source
+                    source: '/cmp/api/storage/buckets/' + widgetid + '/' + entry
+                }), 'put'))
+                config.widget_json.id = widgetid
 
                 stripFields(config.widget_json)
 
@@ -279,4 +283,3 @@ switch(command) {
         process.exit();
         break;
 }
-process.exit();
