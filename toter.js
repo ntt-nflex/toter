@@ -6,6 +6,7 @@ const { execSync }   = require('child_process')
 const fs             = require('fs');
 const readline       = require('readline');
 const async          = require('async');
+const _              = require('lodash-fp');
 const settingsPath   = getUserHome() + '/.toter.json'
 
 let config
@@ -45,6 +46,18 @@ const strippedFields = [
     'distribution'
 ]
 
+const isIP = (url) => {
+    const urlArray = url.split('.');
+    if(urlArray.length !== 4) {
+        return false;
+    }
+
+    return _.flow(
+        _.map((piece) => Number(piece) !== NaN),
+        _.reduce((acc, val) => acc ? acc : val)(false)
+    )(urlArray);
+};
+
 if(!['help', 'config'].includes(command)) {
     if(settings && !settings.regions) {
         console.log('Please run config')
@@ -82,12 +95,14 @@ function curlHelper(api, data, method = 'post', contentType = 'json') {
     const tar1 = (contentType === 'x-tar') ? 'tar -vC ' + folder + ' -c . | ' : ''
     const tar2 = (contentType === 'x-tar') ? '-T -' : ''
     const dataString = (data) ? '-d \'' + JSON.stringify(data) + '\'' : ''
+    const secureString = isIP(region) ? '-k ': ''
 
+    console.log(secureString);
 
     return execSync(
         tar1 +
-        'curl -u \'' + key + ':' + secret + '\' ' +
-        'https://' + region + '/cmp/basic' + api + ' ' +
+        'curl -u ' + key + ':' + secret + ' ' +
+        'https://' + region + '/cmp/basic' + api + ' ' + secureString +
         '-X ' + method.toUpperCase() + ' ' +
         '-H "Content-Type:application/' + contentType + '" ' +
         dataString +
@@ -200,12 +215,15 @@ switch(command) {
         if(!config.widget_json || config.widget_json && !config.widget_json.id) {
             console.log('Please run setup first - widget has no ID')
         } else {
-            config.widget_json.source = JSON.parse(curlHelper('/api/apps/widgets/' + config.widget_json.id, Object.assign({}, widgetDefaults, config.widget_json, {
-                app_id: config.app_json.id,
+            let curlObj = Object.assign({}, widgetDefaults, config.widget_json, {
                 type: 'marketplace',
                 source: '/cmp/api/storage/buckets/' + config.widget_json.id + '/' + entry
-            }), 'put')).source
+            });
 
+            let widgetID = curlObj.id;
+            delete curlObj.id;
+            let curlData = curlHelper('/api/apps/widgets/' + config.widget_json.id, curlObj, 'put');
+            config.widget_json = Object.assign({id: widgetID}, JSON.parse(curlData));
             stripFields(config.widget_json)
         }
 
