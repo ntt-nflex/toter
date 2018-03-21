@@ -78,6 +78,17 @@ if(!['help', 'config'].includes(command)) {
     }
 }
 
+// This is a migration script, remove in a few versions time
+if(config.app_json || config.widget_json) {
+    config = {
+        default: {
+            app_json: config.app_json,
+            widget_json: config.widget_json
+        }
+    }
+    fs.writeFileSync('config.json', JSON.stringify(config, null, 4))
+}
+
 if(setupError) {
     process.exit(1)
 }
