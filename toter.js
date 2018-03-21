@@ -124,6 +124,10 @@ function curlHelper(api, data, method = 'post', contentType = 'json') {
 
 function setConfig() {
     if((argv.u || argv.url) && (argv.k || argv.key) && (argv.s || argv.secret)) {
+        if(!settings.regions || !Object.keys(settings.regions).length) {
+            settings.regions = {}
+        }
+
         settings.regions[argv.n || 'default'] = {
             region: argv.u || argv.url,
             key: argv.k || argv.key,
