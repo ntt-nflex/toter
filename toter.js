@@ -1,13 +1,19 @@
 #!/usr/bin/env node
 
 const workingDir     = process.env.PWD
-const argv           = require('minimist')(process.argv.slice(2));
+const argv           = require('minimist')(process.argv.slice(2))
 const { execSync }   = require('child_process')
-const fs             = require('fs');
-const readline       = require('readline');
-const async          = require('async');
-const _              = require('lodash-fp');
+const fs             = require('fs')
+const readline       = require('readline')
+const async          = require('async')
 const settingsPath   = getUserHome() + '/.toter.json'
+const widgetDefaults = {
+    minx: 4,
+    miny: 4,
+    sizex: 7,
+    sizey: 7,
+    icon: 'html'
+}
 
 let config
 try {
@@ -18,7 +24,7 @@ try {
 
 let settings
 try {
-    settings = require(settingsPath);
+    settings = require(settingsPath)
 } catch(e) {
     settings = {}
 }
@@ -31,7 +37,7 @@ let setupError       = false
 let key
 let secret
 let region
-let widgetDefaults
+let selectedRegion
 
 const strippedFields = [
     'customer_id',
@@ -46,24 +52,21 @@ const strippedFields = [
     'distribution'
 ]
 
-const isIP = (url) => {
-    const urlArray = url.split('.');
+function isIP(url) {
+    const urlArray = url.split('.')
     if(urlArray.length !== 4) {
-        return false;
+        return false
     }
 
-    return _.flow(
-        _.map((piece) => Number(piece) !== NaN),
-        _.reduce((acc, val) => acc ? acc : val)(false)
-    )(urlArray);
-};
+    return !!urlArray.filter((piece) => Number.isInteger(Number(piece))).length
+}
 
 if(!['help', 'config'].includes(command)) {
     if(settings && !settings.regions) {
         console.log('Please run config')
         setupError = true
     } else {
-        let selectedRegion = argv.r || argv.region || 'default'
+        selectedRegion = argv.r || argv.region || 'default'
         key    = settings.regions[selectedRegion].key
         secret = settings.regions[selectedRegion].secret
         region = settings.regions[selectedRegion].region
@@ -75,12 +78,23 @@ if(!['help', 'config'].includes(command)) {
     }
 }
 
+// This is a migration script, remove in a few versions time
+if(config.app_json || config.widget_json) {
+    config = {
+        default: {
+            app_json: config.app_json,
+            widget_json: config.widget_json
+        }
+    }
+    fs.writeFileSync('config.json', JSON.stringify(config, null, 4))
+}
+
 if(setupError) {
     process.exit(1)
 }
 
 function getUserHome() {
-    return process.env.HOME || process.env.USERPROFILE;
+    return process.env.HOME || process.env.USERPROFILE
 }
 
 function stripFields(thing) {
@@ -97,8 +111,6 @@ function curlHelper(api, data, method = 'post', contentType = 'json') {
     const dataString = (data) ? '-d \'' + JSON.stringify(data) + '\'' : ''
     const secureString = isIP(region) ? '-k ': ''
 
-    console.log(secureString);
-
     return execSync(
         tar1 +
         'curl -u ' + key + ':' + secret + ' ' +
@@ -110,13 +122,21 @@ function curlHelper(api, data, method = 'post', contentType = 'json') {
     ).toString('utf8')
 }
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-})
+function setConfig() {
+    if((argv.u || argv.url) && (argv.k || argv.key) && (argv.s || argv.secret)) {
+        settings.regions[argv.n || 'default'] = {
+            region: argv.u || argv.url,
+            key: argv.k || argv.key,
+            secret: argv.s || argv.secret
+        }
+        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {flag: 'w'})
+    } else {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        })
 
-switch(command) {
-    case 'config':
+        let newRegionName
         let newRegion = {}
 
         if(!Object.keys(settings).length || !settings.regions || !Object.keys(settings.regions).length) {
@@ -125,6 +145,11 @@ switch(command) {
 
         async.series([
             (callback) => {
+                rl.question('Region name (default is "default", leave blank if unsure): ', function(input) {
+                    newRegionName = (!input) ? 'default' : input
+                    callback()
+                })
+            }, (callback) => {
                 rl.question('CMP URL (default is "core-cmp.nflex.io"): ', function(input) {
                     newRegion.region = (!input) ? 'core-cmp.nflex.io' : input
                     callback()
@@ -141,145 +166,166 @@ switch(command) {
                 })
             }
         ], () => {
-            settings.regions.default = newRegion
+            settings.regions[newRegionName] = newRegion
             fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {flag: 'w'})
             rl.close()
         })
-        break;
-    case 'setup':
-        if(!Object.keys(config).length) {
-            let name
-            let description
-            async.series([
-                (callback) => {
-                    rl.question('App/Widget name: ', function(input) {
-                        name = input
-                        callback()
-                    })
-                }, (callback) => {
-                    rl.question('App/Widget description: ', function(input) {
-                        description = input
-                        callback()
-                    })
-                }
-            ], () => {
-                widgetDefaults = {
-                    title: name,
-                    description: description,
-                    minx: 4,
-                    miny: 4,
-                    sizex: 7,
-                    sizey: 7,
-                    icon: 'html'
-                }
+    }
+}
 
-                // TODO: Deal with errors nicely
-                config.app_json = JSON.parse(curlHelper('/api/apps', {
-                    name: name,
-                    description: description
-                }))
+function setup() {
+    if(!Object.keys(config).length || !config[selectedRegion]) {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        })
+        let name
+        let description
+        async.series([
+            (callback) => {
+                rl.question('App/Widget name: ', function(input) {
+                    name = input
+                    callback()
+                })
+            }, (callback) => {
+                rl.question('App/Widget description: ', function(input) {
+                    description = input
+                    callback()
+                })
+            }
+        ], () => {
+            const setupDetails = {
+                title: name,
+                description: description
+            }
 
-                stripFields(config.app_json)
+            config[selectedRegion] = {}
 
-                // TODO: Deal with errors nicely
-                config.widget_json = JSON.parse(curlHelper('/api/apps/widgets', Object.assign({}, widgetDefaults, config.widget_json, {
-                    app_id: config.app_json.id,
-                    type: 'marketplace',
-                    source: 'test'
-                })))
+            // TODO: Deal with errors nicely
+            config[selectedRegion].app_json = JSON.parse(curlHelper('/api/apps', {
+                name: name,
+                description: description
+            }))
 
-                stripFields(config.widget_json)
-                const widgetid = config.widget_json.id
-                delete config.widget_json.id
+            stripFields(config[selectedRegion].app_json)
 
-                curlHelper('/api/storage/buckets/' + config.widget_json.id, {
-                    type: 'public'
-                }, 'put')
-
-                config.widget_json = JSON.parse(curlHelper('/api/apps/widgets/' + widgetid, Object.assign({}, widgetDefaults, config.widget_json, {
-                    type: 'marketplace',
-                    source: '/cmp/api/storage/buckets/' + widgetid + '/' + entry
-                }), 'put'))
-                config.widget_json.id = widgetid
-
-                stripFields(config.widget_json)
-
-                fs.writeFileSync('config.json', JSON.stringify(config, null, 4))
-                rl.close()
-            })
-        } else {
-            console.log('Cannot setup - config contains settings already')
-        }
-        break;
-    case 'update':
-        if(!config.widget_json || config.widget_json && !config.widget_json.id) {
-            console.log('Please run setup first - widget has no ID')
-        } else {
-            let curlObj = Object.assign({}, widgetDefaults, config.widget_json, {
+            // TODO: Deal with errors nicely
+            config[selectedRegion].widget_json = JSON.parse(curlHelper('/api/apps/widgets', Object.assign({}, widgetDefaults, setupDetails, config[selectedRegion].widget_json, {
+                app_id: config[selectedRegion].app_json.id,
                 type: 'marketplace',
-                source: '/cmp/api/storage/buckets/' + config.widget_json.id + '/' + entry
-            });
+                source: 'test'
+            })))
 
-            let widgetID = curlObj.id;
-            delete curlObj.id;
-            let curlData = curlHelper('/api/apps/widgets/' + config.widget_json.id, curlObj, 'put');
-            config.widget_json = Object.assign({id: widgetID}, JSON.parse(curlData));
-            stripFields(config.widget_json)
-        }
+            stripFields(config[selectedRegion].widget_json)
+            const widgetID = config[selectedRegion].widget_json.id
+            delete config[selectedRegion].widget_json.id
 
-        if(!config.app_json || config.app_json && !config.app_json.id) {
-            console.log('Please run setup first - app has no ID')
-        } else {
-            config.app_json = JSON.parse(curlHelper('/api/apps', config.app_json))
-
-            stripFields(config.app_json)
-        }
-        fs.writeFileSync('config.json', JSON.stringify(config, null, 4))
-        break;
-    case 'upload':
-        if(config.widget_json && config.widget_json.id) {
-            // Needs to be two commands due to the first and second curls
-            // having different data bodies
-            curlHelper('/api/storage/buckets/' + config.widget_json.id, {
+            curlHelper('/api/storage/buckets/' + config[selectedRegion].widget_json.id, {
                 type: 'public'
             }, 'put')
-            curlHelper('/api/storage/archive/' + config.widget_json.id, false, 'put', 'x-tar')
-        } else {
-            console.log('Run setup first')
-        }
-        break;
-    case 'submit':
-        if(config.app_json && config.app_json.id) {
-            curlHelper('/api/apps/' + config.app_json.id + '/submit', false,
-                'post')
-        } else {
-            console.log('You don\'t appear to have an app id')
-        }
-        break;
-    case 'approve':
-        if(config.app_json && config.app_json.id) {
-            curlHelper('/api/apps/' + config.app_json.id + '/approve', false,
-                'post')
-        } else {
-            console.log('You don\'t appear to have an app id')
-        }
-        break;
-    case 'help':
-    default:
-        console.log([
-            'usage: toter [command] [options]',
-            '',
-            'commands:',
-            '  config       Configure toter with your auth credentials',
-            '  setup        Setup your repository as a Marketplace widget',
-            '  upload       Upload the contents of your dist/ folder to StormDrive',
-            '  submit       Submit your widget for review',
-            '  help         Print this list and exit',
-            '',
-            // 'options:',
-            // '  -r --region  Region to use other than default',
-            // ''
-        ].join('\n'));
-        process.exit();
-        break;
+
+            config[selectedRegion].widget_json = JSON.parse(curlHelper('/api/apps/widgets/' + widgetID, Object.assign({}, widgetDefaults, config[selectedRegion].widget_json, {
+                type: 'marketplace',
+                source: '/cmp/api/storage/buckets/' + widgetID + '/' + entry
+            }), 'put'))
+            config[selectedRegion].widget_json.id = widgetID
+
+            stripFields(config[selectedRegion].widget_json)
+
+            fs.writeFileSync('config.json', JSON.stringify(config, null, 4))
+            rl.close()
+        })
+    } else {
+        console.log('Cannot setup - config contains settings already')
+    }
 }
+
+function update() {
+    if(!config[selectedRegion].widget_json || config[selectedRegion].widget_json && !config[selectedRegion].widget_json.id) {
+        console.log('Please run setup first - widget has no ID')
+    } else {
+        let curlObj = Object.assign({}, widgetDefaults, config[selectedRegion].widget_json, {
+            type: 'marketplace',
+            source: '/cmp/api/storage/buckets/' + config[selectedRegion].widget_json.id + '/' + entry
+        })
+
+        let widgetID = curlObj.id
+        delete curlObj.id
+        let curlData = curlHelper('/api/apps/widgets/' + config[selectedRegion].widget_json.id, curlObj, 'put')
+        config[selectedRegion].widget_json = Object.assign({id: widgetID}, JSON.parse(curlData))
+        stripFields(config[selectedRegion].widget_json)
+    }
+
+    if(!config[selectedRegion].app_json || config[selectedRegion].app_json && !config[selectedRegion].app_json.id) {
+        console.log('Please run setup first - app has no ID')
+    } else {
+        config[selectedRegion].app_json = JSON.parse(curlHelper('/api/apps', config[selectedRegion].app_json))
+
+        stripFields(config[selectedRegion].app_json)
+    }
+    fs.writeFileSync('config.json', JSON.stringify(config, null, 4))
+}
+
+function upload() {
+    if(config[selectedRegion].widget_json && config[selectedRegion].widget_json.id) {
+        // Needs to be two commands due to the first and second curls
+        // having different data bodies
+        curlHelper('/api/storage/buckets/' + config[selectedRegion].widget_json.id, {
+            type: 'public'
+        }, 'put')
+        curlHelper('/api/storage/archive/' + config[selectedRegion].widget_json.id, false, 'put', 'x-tar')
+    } else {
+        console.log('Run setup first')
+    }
+}
+
+function submit() {
+    if(config[selectedRegion].app_json && config[selectedRegion].app_json.id) {
+        curlHelper('/api/apps/' + config[selectedRegion].app_json.id + '/submit', false, 'post')
+    } else {
+        console.log('You don\'t appear to have an app id')
+    }
+}
+
+function approve() {
+    if(config[selectedRegion].app_json && config[selectedRegion].app_json.id) {
+        curlHelper('/api/apps/' + config[selectedRegion].app_json.id + '/approve', false,
+            'post')
+    } else {
+        console.log('You don\'t appear to have an app id')
+    }
+}
+
+function help() {
+    console.log([
+        'usage: toter [command] [options]',
+        '',
+        'commands:',
+        '  config            Configure toter with your auth credentials',
+        '    -u --url        Set the region url',
+        '    -k --key        Set the key',
+        '    -s --secret     Set the secret',
+        '    -n --new        Set the region name - used to specify different regions',
+        '  setup             Setup your repository as a Marketplace widget',
+        '  upload            Upload the contents of your dist/ folder to StormDrive',
+        '  submit            Submit your widget for review',
+        '  help              Print this list and exit',
+        '',
+        'options:',
+        '  -r --region      Region to use other than default',
+        ''
+    ].join('\n'))
+    process.exit()
+}
+
+const commands = {
+    config: setConfig,
+    setup,
+    update,
+    upload,
+    submit,
+    approve,
+    help,
+}
+
+commands[command]()
