@@ -6,7 +6,8 @@ const { execSync }   = require('child_process')
 const fs             = require('fs')
 const readline       = require('readline')
 const async          = require('async')
-const settingsPath   = getUserHome() + '/.toter.json'
+const isGlobal       = require('is-installed-globally')
+const settingsPath   = isGlobal ? getUserHome() + '/.toter.json' : '/.toter.json'
 const widgetDefaults = {
     minx: 4,
     miny: 4,
@@ -123,57 +124,65 @@ function curlHelper(api, data, method = 'post', contentType = 'json') {
 }
 
 function setConfig() {
-    if((argv.u || argv.url) && (argv.k || argv.key) && (argv.s || argv.secret)) {
-        if(!settings.regions || !Object.keys(settings.regions).length) {
-            settings.regions = {}
-        }
-
-        settings.regions[argv.n || 'default'] = {
-            region: argv.u || argv.url,
-            key: argv.k || argv.key,
-            secret: argv.s || argv.secret
-        }
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {flag: 'w'})
-    } else {
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        })
-
-        let newRegionName
-        let newRegion = {}
-
-        if(!Object.keys(settings).length || !settings.regions || !Object.keys(settings.regions).length) {
-            settings.regions = {}
-        }
-
-        async.series([
-            (callback) => {
-                rl.question('Region name (default is "default", leave blank if unsure): ', function(input) {
-                    newRegionName = (!input) ? 'default' : input
-                    callback()
-                })
-            }, (callback) => {
-                rl.question('CMP URL (default is "core-cmp.nflex.io"): ', function(input) {
-                    newRegion.region = (!input) ? 'core-cmp.nflex.io' : input
-                    callback()
-                })
-            }, (callback) => {
-                rl.question('CMP API Key: ', function(input) {
-                    newRegion.key = input
-                    callback()
-                })
-            }, (callback) => {
-                rl.question('CMP API Secret: ', function(input) {
-                    newRegion.secret = input
-                    callback()
-                })
+    if(isGlobal || (argv.f || argv.force)) {
+        if((argv.u || argv.url) && (argv.k || argv.key) && (argv.s || argv.secret)) {
+            if(!settings.regions || !Object.keys(settings.regions).length) {
+                settings.regions = {}
             }
-        ], () => {
-            settings.regions[newRegionName] = newRegion
+
+            settings.regions[argv.n || 'default'] = {
+                region: argv.u || argv.url,
+                key: argv.k || argv.key,
+                secret: argv.s || argv.secret
+            }
             fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {flag: 'w'})
-            rl.close()
-        })
+        } else {
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout
+            })
+
+            let newRegionName
+            let newRegion = {}
+
+            if(!Object.keys(settings).length || !settings.regions || !Object.keys(settings.regions).length) {
+                settings.regions = {}
+            }
+
+            async.series([
+                (callback) => {
+                    rl.question('Region name (default is "default", leave blank if unsure): ', function(input) {
+                        newRegionName = (!input) ? 'default' : input
+                        callback()
+                    })
+                }, (callback) => {
+                    rl.question('CMP URL (default is "core-cmp.nflex.io"): ', function(input) {
+                        newRegion.region = (!input) ? 'core-cmp.nflex.io' : input
+                        callback()
+                    })
+                }, (callback) => {
+                    rl.question('CMP API Key: ', function(input) {
+                        newRegion.key = input
+                        callback()
+                    })
+                }, (callback) => {
+                    rl.question('CMP API Secret: ', function(input) {
+                        newRegion.secret = input
+                        callback()
+                    })
+                }
+            ], () => {
+                settings.regions[newRegionName] = newRegion
+                fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {flag: 'w'})
+                rl.close()
+            })
+        }
+    } else {
+        console.warn('Toter is not installed globally, running this command will create or' +
+            ' add to the ".toter.json" settings file in this directory. If you are sure you' +
+            ' want to store settings in your project please make sure you .gitignore' +
+            ' ".toter.json" file. Otherwise, run "npm uninstall toter" in this directory' +
+            ' and reinstall it with the -g flag')
     }
 }
 
