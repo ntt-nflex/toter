@@ -107,8 +107,8 @@ function stripFields(thing) {
 }
 
 function curlHelper(api, data, method = 'post', contentType = 'json') {
-    const tar1 = (contentType === 'x-tar') ? 'tar -vC ' + folder + ' -c . | ' : ''
-    const tar2 = (contentType === 'x-tar') ? '-T -' : ''
+    const tar1 = (contentType === 'x-tgz') ? 'COPYFILE_DISABLE=1 tar -zvC ' + folder + ' -c . | ' : ''
+    const tar2 = (contentType === 'x-tgz') ? '-T -' : ''
     const dataString = (data) ? '-d \'' + JSON.stringify(data) + '\'' : ''
     const secureString = isIP(region) ? '-k ': ''
 
@@ -286,7 +286,7 @@ function upload() {
         curlHelper('/api/storage/buckets/' + config[selectedRegion].widget_json.id, {
             type: 'public'
         }, 'put')
-        curlHelper('/api/storage/archive/' + config[selectedRegion].widget_json.id, false, 'put', 'x-tar')
+        curlHelper('/api/storage/archive/' + config[selectedRegion].widget_json.id, false, 'put', 'x-tgz')
     } else {
         console.log('Run setup first')
     }
