@@ -9,6 +9,12 @@ module.exports = (config, region) => {
     }
 
     api('/api/apps', config[region].app_json)
+        .then(res => console.info(`Widget updated successfully: ${res}`))
+        .catch(err => {
+            console.error(`Unable to update widget: ${err.error}`)
+            process.exit(1)
+        })
+
     stripFields(config[region].app_json)
     fs.writeFileSync('config.json', JSON.stringify(config, null, 4))
 }

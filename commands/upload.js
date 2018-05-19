@@ -12,4 +12,9 @@ module.exports = (config, region) => {
     const url = `/api/storage/archive/${widgetId}`
 
     api(url, false, region, 'put', 'x-tgz')
+        .then(res => console.info(`Widget uploaded successfully: ${res}`))
+        .catch(err => {
+            console.error(`Unable to upload widget: ${err.error}`)
+            process.exit(1)
+        })
 }

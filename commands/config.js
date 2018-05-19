@@ -3,19 +3,19 @@ const { writeFileSync } = require('fs')
 const argv = require('minimist')(process.argv.slice(2))
 const async = require('async')
 const getFile = require('../utils/get-file')
+const isGlobal = require('is-installed-globally')
 const readline = require('readline')
+
+const globalMessage = `
+Toter is not installed globally, running this command will create or add to the ".toter.json" settings file in this directory. 
+If you are sure you want to store settings in your project please make sure you .gitignore ".toter.json" file. 
+Otherwise, run "npm uninstall toter" in this directory and reinstall it with the -g flag
+`
 
 module.exports = () => {
     const isInstalledGlobally = isGlobal || (argv.f || argv.force)
     if (!isInstalledGlobally) {
-        console.warn(
-            `Toter is not installed globally, running this command 
-            will create or add to the ".toter.json" settings file 
-            in this directory. If you are sure you want to store 
-            settings in your project please make sure you .gitignore
-            ".toter.json" file. Otherwise, run "npm uninstall toter" 
-            in this directory and reinstall it with the -g flag`
-        )
+        console.warn(globalMessage)
         process.exit(1)
     }
 

@@ -1,16 +1,10 @@
-const argv = require('minimist')(process.argv.slice(2))
+const api = require('../api/api')
 const async = require('async')
 const fs = require('fs')
 const readline = require('readline')
 const stripFields = require('../utils/strip-fields').default
 
 module.exports = (config, region, defaults) => {
-    const hasSettings = !Object.keys(config).length || !config[region]
-    if (hasSettings) {
-        console.error('Config already has settings')
-        process.exit(1)
-    }
-
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
@@ -47,14 +41,26 @@ module.exports = (config, region, defaults) => {
                 marketplacePayload
             )
 
-            config[region] = {}
-            config[region].app_json = JSON.parse(api(url, payload, 'put'))
-            config[region].widget_json.id = widgetID
+            api(url, payload, region, 'put')
+                .then(res => {
+                    console.info(`Widget created successfully`)
 
-            stripFields(config[region].widget_json)
+                    config[region].app_json = res
+                    config[region].widget_json.id = widgetID
 
-            fs.writeFileSync('config.json', JSON.stringify(config, null, 4))
-            rl.close()
+                    stripFields(config[region].widget_json)
+                    fs.writeFileSync(
+                        'config.json',
+                        JSON.stringify(config, null, 4)
+                    )
+                })
+                .catch(err => {
+                    console.error(`Unable to create widget: ${err.error}`)
+                    process.exit(1)
+                })
+                .then(() => {
+                    rl.close()
+                })
         }
     )
 }

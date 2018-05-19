@@ -10,4 +10,9 @@ module.exports = (config, region) => {
     const url = `/api/apps/${appId}/approve`
 
     api(url, false, region)
+        .then(res => console.info(`Widget approved successfully: ${res}`))
+        .catch(err => {
+            console.error(`Unable to approve widget: ${err.error}`)
+            process.exit(1)
+        })
 }

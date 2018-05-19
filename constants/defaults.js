@@ -1,6 +1,7 @@
 module.exports = {
-    folder: 'dist',
     entry: 'index.html',
+    folder: 'dist',
+    region: 'default',
     settingsPath: `${process.env.HOME || process.env.USERPROFILE}/.toter.json`,
     widget: {
         minx: 4,

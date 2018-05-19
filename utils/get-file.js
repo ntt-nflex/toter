@@ -1,4 +1,6 @@
-const fs = require('fs')
+const { existsSync } = require('fs')
+
+module.exports = getFile
 
 /**
  * retrieves a file from a path if exists
@@ -14,5 +16,3 @@ function getFile(path) {
     }
     return require(path)
 }
-
-module.exports = getFile
