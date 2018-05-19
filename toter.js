@@ -21,13 +21,13 @@ if (config.app_json || config.widget_json) {
 const selectedRegion = argv.r || argv.region || 'default'
 
 const commands = {
-    approve: require('./commands/approve')(config, selectedRegion),
+    approve: require('./commands/approve').bind(null, config, selectedRegion),
     config: require('./commands/config'),
     help: require('./commands/help'),
-    setup: require('./commands/setup')(config, selectedRegion, defaults),
-    submit: require('./commands/submit')(config, selectedRegion),
-    update: require('./commands/update')(config, selectedRegion),
-    upload: require('./commands/upload')(config, selectedRegion)
+    setup: require('./commands/setup').bind(config, selectedRegion, defaults),
+    submit: require('./commands/submit').bind(config, selectedRegion),
+    update: require('./commands/update').bind(config, selectedRegion),
+    upload: require('./commands/upload').bind(config, selectedRegion)
 }
 
 const command = argv._[0] || 'help'

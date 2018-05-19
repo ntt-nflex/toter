@@ -1,7 +1,7 @@
 const { settingsPath } = require('../constants/defaults')
+const { writeFileSync } = require('fs')
 const argv = require('minimist')(process.argv.slice(2))
 const async = require('async')
-const fs = require('fs')
 const getFile = require('../utils/get-file')
 const readline = require('readline')
 
@@ -44,7 +44,7 @@ function generateConfigWithFlags(settingsPath) {
         secret: argv.s || argv.secret
     }
 
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {
+    writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {
         flag: 'w'
     })
 }
@@ -110,7 +110,7 @@ function generateConfigWithoutFlags() {
         ],
         () => {
             settings.regions[regionName] = region
-            fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {
+            writeFileSync(settingsPath, JSON.stringify(settings, null, 4), {
                 flag: 'w'
             })
             rl.close()

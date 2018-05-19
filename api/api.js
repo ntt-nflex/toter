@@ -1,11 +1,17 @@
 const { execSync } = require('child_process')
 const { folder, settingsPath } = require('../constants/defaults')
-const getCredentials = require('./utils/credentials')
+const getCredentials = require('../utils/credentials')
 const getFile = require('../utils/get-file')
 const settings = getFile(settingsPath)
 
-module.exports = (api, data, region, method = 'post', contentType = 'json') => {
-    const { key, secret, region } = getCredentials(settings, region)
+module.exports = (
+    api,
+    data,
+    selectedRegion,
+    method = 'post',
+    contentType = 'json'
+) => {
+    const { key, secret, region } = getCredentials(settings, selectedRegion)
 
     const tar1 =
         contentType === 'x-tgz'
@@ -16,7 +22,7 @@ module.exports = (api, data, region, method = 'post', contentType = 'json') => {
     const secureString = isIP(region) ? '-k ' : ''
 
     const curlCommand = `${tar1} curl -u ${key}:${secret} https://${region}/cmp/basic${api} 
-        ${secureString} -X ${method.toUpperCase()} -H "Content-Type:application/'${contentType}" ${dataString} ${tar2}`
+        ${secureString} -X ${method.toUpperCase()} -H "Content-Type:application/${contentType}" ${dataString} ${tar2}`
     return execSync(curlCommand).toString('utf8')
     // return execSync(
     //     tar1 +
