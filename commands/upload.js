@@ -1,6 +1,6 @@
-const api = require('../api/api')
+module.exports = upload
 
-module.exports = (config, region) => {
+function upload(api, config, region) {
     const hasWidgetId =
         config[region].widget_json && config[region].widget_json.id
     if (!hasWidgetId) {
@@ -12,9 +12,11 @@ module.exports = (config, region) => {
     const url = `/api/storage/archive/${widgetId}`
 
     api(url, false, region, 'put', 'x-tgz')
-        .then(res => console.info(`Widget uploaded successfully: ${res}`))
+        .then(res =>
+            console.info(`Widget uploaded successfully: ${JSON.stringify(res)}`)
+        )
         .catch(err => {
-            console.error(`Unable to upload widget: ${err.error}`)
+            console.error(`Unable to upload widget: ${JSON.stringify(err)}`)
             process.exit(1)
         })
 }

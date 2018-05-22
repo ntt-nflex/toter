@@ -1,4 +1,4 @@
-const { existsSync } = require('fs')
+const { existsSync, writeFileSync } = require('fs')
 
 module.exports = getFile
 
@@ -10,9 +10,9 @@ module.exports = getFile
  * @return {[object]} an object with the properties found in the file
  */
 function getFile(path) {
-    if (!fs.existsSync(path)) {
-        console.error(`${path} required`)
-        process.exit(1)
+    if (!existsSync(path)) {
+        writeFileSync(path, JSON.stringify({}, null, 4))
+        return null
     }
     return require(path)
 }

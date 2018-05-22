@@ -1,10 +1,11 @@
-const api = require('../api/api')
 const async = require('async')
-const fs = require('fs')
+const { writeFileSync } = require('fs')
 const readline = require('readline')
-const stripFields = require('../utils/strip-fields').default
+const stripFields = require('./../utils/strip-fields')
 
-module.exports = (config, region, defaults) => {
+module.exports = setup
+
+function setup(api, config, region, defaults) {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
@@ -29,38 +30,151 @@ module.exports = (config, region, defaults) => {
             }
         ],
         () => {
-            const widgetID = config[region].widget_json.id
-            const url = `/api/apps/widgets/${widgetID}`
-            const marketplacePayload = {
-                type: 'marketplace',
-                source: `/cmp/api/storage/buckets/${widgetID}/${defaults.entry}`
-            }
-            const payload = Object.assign(
-                {},
-                defaults.widget,
-                marketplacePayload
-            )
-
-            api(url, payload, region, 'put')
+            Promise.resolve()
+                .then(() => createApp(api, name, description))
+                .then(res => createWidget(api, res, defaults.widget))
+                .then(res => createBucket(api, res))
+                .then(res => createBucketEntry(api, res))
+                .then(res => uploadWidget(api, res, defaults))
                 .then(res => {
-                    console.info(`Widget created successfully`)
+                    config[region].app_json = res.app
+                    config[region].widget_json = res.widget
 
-                    config[region].app_json = res
-                    config[region].widget_json.id = widgetID
-
-                    stripFields(config[region].widget_json)
-                    fs.writeFileSync(
+                    writeFileSync(
                         'config.json',
                         JSON.stringify(config, null, 4)
                     )
                 })
-                .catch(err => {
-                    console.error(`Unable to create widget: ${err.error}`)
-                    process.exit(1)
-                })
-                .then(() => {
-                    rl.close()
-                })
+                .catch(setupError)
+                .then(() => rl.close())
         }
     )
+}
+
+function createApp(api, name, description) {
+    const app = {
+        name,
+        description
+    }
+
+    return new Promise((resolve, reject) => {
+        api('/api/apps', app)
+            .then(res => {
+                console.info('Created app successfully', JSON.stringify(res))
+                resolve({ app: stripFields(res) })
+            })
+            .catch(setupError)
+    })
+}
+
+function createWidget(api, settings, widgetDefaults) {
+    const widget = Object.assign(
+        {
+            app_id: settings.app.id,
+            description: settings.app.description,
+            source: 'test',
+            title: settings.app.name,
+            type: 'marketplace'
+        },
+        widgetDefaults
+    )
+
+    return new Promise((resolve, reject) => {
+        api('/api/apps/widgets', widget)
+            .then(res => {
+                console.info(
+                    'Created widget successfully:',
+                    JSON.stringify(res)
+                )
+                resolve({
+                    app: settings.app,
+                    widget: stripFields(res)
+                })
+            })
+            .catch(setupError)
+    })
+}
+
+function createBucket(api, settings) {
+    const bucket = {
+        type: 'public'
+    }
+
+    return new Promise((resolve, reject) => {
+        api(`/api/storage/buckets/${settings.widget.id}`, bucket, 'put')
+            .then(res => {
+                console.info(
+                    'Created bucket successfully:',
+                    JSON.stringify(res)
+                )
+                resolve({
+                    app: settings.app,
+                    widget: settings.widget
+                })
+            })
+            .catch(setupError)
+    })
+}
+
+function createBucketEntry(api, settings) {
+    const bucket = {
+        type: 'public'
+    }
+
+    return new Promise((resolve, reject) => {
+        api(`/api/storage/buckets/${settings.widget.id}/entry`, bucket, 'put')
+            .then(res => {
+                console.info(
+                    'Created bucket entry successfully:',
+                    JSON.stringify(res)
+                )
+                resolve({
+                    app: settings.app,
+                    widget: settings.widget
+                })
+            })
+            .catch(err => setupError)
+    })
+}
+
+function uploadWidget(api, settings, defaults) {
+    let widgetSettings = Object.assign({}, settings.widget)
+
+    // widget id should not be passed into the payload
+    // due to error key 'id' is invalid to update
+    delete widgetSettings.id
+
+    const widget = Object.assign(defaults.widget, widgetSettings, {
+        type: 'marketplace',
+        // the bucket was created with using the widget's id as name
+        source: `/cmp/api/storage/buckets/${settings.widget.id}/${
+            defaults.entry
+        }`
+    })
+
+    return new Promise((resolve, reject) =>
+        api(`/api/apps/widgets/${settings.widget.id}`, widget, 'put')
+            .then(res => {
+                console.info(
+                    'Uploaded widget successfully:',
+                    JSON.stringify(res)
+                )
+
+                resolve({
+                    app: settings.app,
+                    widget: Object.assign(
+                        {
+                            id: settings.widget.id,
+                            source: widget.source
+                        },
+                        stripFields(res)
+                    )
+                })
+            })
+            .catch(setupError)
+    )
+}
+
+function setupError(err) {
+    console.error('Unable to setup widget:', JSON.stringify(err))
 }

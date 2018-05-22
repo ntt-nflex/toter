@@ -1,22 +1,25 @@
 const strippedFields = [
-    'customer_id',
-    'user_id',
-    'subscribers',
-    'updated_at',
     'created_at',
-    'type',
+    'customer_id',
+    'distribution',
     'module_id',
     'source_module_id',
     'status',
-    'distribution'
+    'subscribers',
+    'tag',
+    'translations',
+    'type',
+    'updated_at',
+    'user_id'
 ]
 
-module.exports = strippedFields
+module.exports = stripFields
 
 /**
  * strips the a defined set of fields from a payload
  *
  * @param  {[object]} payload the payload whose fields are to be stripped off
+ * @return {[object]} payload with stripped fields
  */
 function stripFields(payload) {
     Object.keys(payload).forEach(key => {
@@ -24,4 +27,6 @@ function stripFields(payload) {
             delete payload[key]
         }
     })
+
+    return payload
 }

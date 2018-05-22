@@ -1,18 +1,19 @@
-const { settingsPath } = require('../constants/defaults')
 const { writeFileSync } = require('fs')
 const argv = require('minimist')(process.argv.slice(2))
 const async = require('async')
-const getFile = require('../utils/get-file')
+const getFile = require('./../utils/get-file')
 const isGlobal = require('is-installed-globally')
 const readline = require('readline')
 
 const globalMessage = `
-Toter is not installed globally, running this command will create or add to the ".toter.json" settings file in this directory. 
-If you are sure you want to store settings in your project please make sure you .gitignore ".toter.json" file. 
+Toter is not installed globally, running this command will create or add to the ".toter.json" settings file in this directory.
+If you are sure you want to store settings in your project please make sure you .gitignore ".toter.json" file.
 Otherwise, run "npm uninstall toter" in this directory and reinstall it with the -g flag
 `
 
-module.exports = () => {
+module.exports = config
+
+function config(settingsPath) {
     const isInstalledGlobally = isGlobal || (argv.f || argv.force)
     if (!isInstalledGlobally) {
         console.warn(globalMessage)
@@ -22,22 +23,26 @@ module.exports = () => {
     const usingFlags =
         (argv.u || argv.url) && (argv.k || argv.key) && (argv.s || argv.secret)
 
-    if (usingFlags) {
-        generateConfigWithFlags(settingsPath)
-    } else {
-        generateConfigWithoutFlags()
-    }
-}
-
-function generateConfigWithFlags(settingsPath) {
     const settings = getFile(settingsPath)
-    const hasRegions = settings.regions || Object.keys(settings.regions).length
+    if (!settings) {
+        console.error('No settings file found at', settingsPath)
+        process.exit(1)
+    }
 
+    const hasRegions = settings.regions || Object.keys(settings.regions).length
     if (!hasRegions) {
         console.warn(`Settings file at ${settingsPath} has no regions`)
         settings.regions = {}
     }
 
+    if (usingFlags) {
+        generateConfigWithFlags(settings, settingsPath)
+    } else {
+        generateConfigWithoutFlags(settings, settingsPath)
+    }
+}
+
+function generateConfigWithFlags(settings, settingsPath) {
     settings.regions[argv.n || 'default'] = {
         region: argv.u || argv.url,
         key: argv.k || argv.key,
@@ -49,15 +54,7 @@ function generateConfigWithFlags(settingsPath) {
     })
 }
 
-function generateConfigWithoutFlags() {
-    const settings = require(settingsPath)
-    const hasRegions = settings.regions || Object.keys(settings.regions).length
-
-    if (!hasRegions) {
-        console.warn(`Settings file at ${settingsPath} has no regions`)
-        settings.regions = {}
-    }
-
+function generateConfigWithoutFlags(settings, settingsPath) {
     // set the defaults
     let regionName = 'default'
     let region = {

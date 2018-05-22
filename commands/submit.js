@@ -1,7 +1,6 @@
-const api = require('../api/api')
+module.exports = submit
 
-module.exports = (config, region) => {
-    console.log(region)
+function submit(api, config, region) {
     const hasAppId = config[region].app_json && config[region].app_json.id
     if (!hasAppId) {
         console.error('App ID required in config.json')
@@ -12,9 +11,13 @@ module.exports = (config, region) => {
     const url = `/api/apps/${appId}`
 
     api(url, false, region)
-        .then(res => console.info(`Widget submitted successfully: ${res}`))
+        .then(res =>
+            console.info(
+                `Widget submitted successfully: ${JSON.stringify(res)}`
+            )
+        )
         .catch(err => {
-            console.error(`Unable to submit widget: ${err.error}`)
+            console.error(`Unable to submit widget: ${JSON.stringify(err)}`)
             process.exit(1)
         })
 }

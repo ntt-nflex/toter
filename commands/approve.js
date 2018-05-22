@@ -1,6 +1,6 @@
-const api = require('../api/api')
+module.exports = approve
 
-module.exports = (config, region) => {
+function approve(api, config, region) {
     const hasAppId = config[region].app_json && config[region].app_json.id
     if (!hasAppId) {
         console.error('App ID required in config.json')
@@ -9,10 +9,12 @@ module.exports = (config, region) => {
     const appId = config[region].app_json.id
     const url = `/api/apps/${appId}/approve`
 
-    api(url, false, region)
-        .then(res => console.info(`Widget approved successfully: ${res}`))
+    api(url)
+        .then(res =>
+            console.info(`Widget approved successfully: ${JSON.stringify(res)}`)
+        )
         .catch(err => {
-            console.error(`Unable to approve widget: ${err.error}`)
+            console.error(`Unable to approve widget: ${JSON.stringify(err)}`)
             process.exit(1)
         })
 }

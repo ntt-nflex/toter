@@ -1,6 +1,9 @@
-const stripFields = require('../utils/strip-fields').default
+const { writeFileSync } = require('fs')
+const stripFields = require('./../utils/strip-fields')
 
-module.exports = (config, region) => {
+module.exports = update
+
+function update(api, config, region) {
     const hasWidgetId =
         config[region].widget_json && config[region].widget_json.id
     if (!hasWidgetId) {
@@ -9,12 +12,14 @@ module.exports = (config, region) => {
     }
 
     api('/api/apps', config[region].app_json)
-        .then(res => console.info(`Widget updated successfully: ${res}`))
+        .then(res =>
+            console.info(`Widget updated successfully: ${JSON.stringify(res)}`)
+        )
         .catch(err => {
-            console.error(`Unable to update widget: ${err.error}`)
+            console.error(`Unable to update widget: ${JSON.stringify(err)}`)
             process.exit(1)
         })
 
     stripFields(config[region].app_json)
-    fs.writeFileSync('config.json', JSON.stringify(config, null, 4))
+    writeFileSync('config.json', JSON.stringify(config, null, 4))
 }
