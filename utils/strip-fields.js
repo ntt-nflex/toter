@@ -4,6 +4,7 @@ const strippedFields = [
     'distribution',
     'module_id',
     'source_module_id',
+    'source',
     'status',
     'subscribers',
     'tag',

@@ -38,14 +38,17 @@ function setup(api, config, region, defaults) {
                 .then(res => uploadWidget(api, res, defaults))
                 .then(res => {
                     config[region].app_json = res.app
-                    config[region].widget_json = res.widget
+                    config[region].widget_json = stripFields(res.widget)
 
                     writeFileSync(
                         'config.json',
                         JSON.stringify(config, null, 4)
                     )
                 })
-                .catch(setupError)
+                .catch(err => {
+                    console.error(err)
+                    process.exit(1)
+                })
                 .then(() => rl.close())
         }
     )
@@ -63,7 +66,7 @@ function createApp(api, name, description) {
                 console.info('Created app successfully', JSON.stringify(res))
                 resolve({ app: stripFields(res) })
             })
-            .catch(setupError)
+            .catch(err => reject(err))
     })
 }
 
@@ -91,7 +94,7 @@ function createWidget(api, settings, widgetDefaults) {
                     widget: stripFields(res)
                 })
             })
-            .catch(setupError)
+            .catch(err => reject(err))
     })
 }
 
@@ -112,7 +115,7 @@ function createBucket(api, settings) {
                     widget: settings.widget
                 })
             })
-            .catch(setupError)
+            .catch(err => reject(err))
     })
 }
 
@@ -133,7 +136,7 @@ function createBucketEntry(api, settings) {
                     widget: settings.widget
                 })
             })
-            .catch(err => setupError)
+            .catch(err => reject(err))
     })
 }
 
@@ -171,10 +174,6 @@ function uploadWidget(api, settings, defaults) {
                     )
                 })
             })
-            .catch(setupError)
+            .catch(err => reject(err))
     )
-}
-
-function setupError(err) {
-    console.error('Unable to setup widget:', JSON.stringify(err))
 }

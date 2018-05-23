@@ -8,16 +8,20 @@ function submit(api, config, region) {
     }
 
     const appId = config[region].app_json.id
-    const url = `/api/apps/${appId}`
 
-    api(url, false, region)
-        .then(res =>
-            console.info(
-                `Widget submitted successfully: ${JSON.stringify(res)}`
-            )
-        )
+    Promise.resolve()
+        .then(() => submitApp(api, appId))
+        .then(() => console.info('Widget submitted successfully'))
         .catch(err => {
-            console.error(`Unable to submit widget: ${JSON.stringify(err)}`)
+            console.error('Unable to submit widget', err)
             process.exit(1)
         })
+}
+
+function submitApp(api, id) {
+    return new Promise((resolve, reject) => {
+        api(`/api/apps/${id}/submit`)
+            .then(() => resolve())
+            .catch(err => reject(err))
+    })
 }

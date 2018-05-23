@@ -6,15 +6,22 @@ function approve(api, config, region) {
         console.error('App ID required in config.json')
         process.exit(1)
     }
-    const appId = config[region].app_json.id
-    const url = `/api/apps/${appId}/approve`
 
-    api(url)
-        .then(res =>
-            console.info(`Widget approved successfully: ${JSON.stringify(res)}`)
-        )
+    const appId = config[region].app_json.id
+
+    Promise.resolve()
+        .then(() => approveApp(api, appId))
+        .then(() => console.info('Widget approved successfully'))
         .catch(err => {
-            console.error(`Unable to approve widget: ${JSON.stringify(err)}`)
+            console.error('Unable to approve widget:', err)
             process.exit(1)
         })
+}
+
+function approveApp(api, id) {
+    return new Promise((resolve, reject) => {
+        api(`/api/apps/${id}/approve`)
+            .then(() => resolve())
+            .catch(err => reject(err))
+    })
 }
