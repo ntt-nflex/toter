@@ -2,7 +2,16 @@ const { execSync } = require('child_process')
 
 module.exports = api
 
-function api(api, data = false, method = 'post', contentType = 'json') {
+/**
+ * Calls CMP API endpoints via CURL commands
+ *
+ * @param  {[string]} endpoint part of url that specifies the endpoint
+ * @param  {[object]} data payload to send. Defaults to false
+ * @param  {[string]} method http method to use. Defaults to HTTP POST
+ * @param  {[string]} contentType payload's content type. Defaults to application/json
+ * @return {[object]} response payload
+ */
+function api(endpoint, data = false, method = 'post', contentType = 'json') {
     return new Promise((resolve, reject) => {
         const { key, secret, region } = this.credentials
         const tar1 =
@@ -13,8 +22,15 @@ function api(api, data = false, method = 'post', contentType = 'json') {
         const dataString = data ? "-d '" + JSON.stringify(data) + "'" : ''
         const secureString = isIP(region) ? '-k ' : ''
 
-        const curlCommand = `${tar1} curl -u ${key}:${secret} https://${region}/cmp/basic${api} ${secureString} -X ${method.toUpperCase()} -H "Content-Type:application/${contentType}" ${dataString} ${tar2}`
-        const response = JSON.parse(execSync(curlCommand).toString('utf8'))
+        // TODO: refactor curl logic into http client
+        const curlCommand = `${tar1} curl -u ${key}:${secret} https://${region}/cmp/basic${endpoint} ${secureString} -X ${method.toUpperCase()} -H "Content-Type:application/${contentType}" ${dataString} ${tar2}`
+        const response = JSON.parse(
+            execSync(curlCommand, {
+                // using pipe here so that the curl command
+                // does not output to terminal
+                stdio: 'pipe'
+            }).toString('utf8')
+        )
 
         // some payload retrieve status_code, others retrieve error_code
         const code = response.status_code || response.error_code

@@ -5,6 +5,14 @@ const stripFields = require('./../utils/strip-fields')
 
 module.exports = setup
 
+/**
+ * Sets up widget configuration file
+ *
+ * @param  {[function]} api api client
+ * @param  {[object]} config configuration file's data
+ * @param  {[string]} region region to filter the configuration file
+ * @param  {[object]} defaults default values used throughout the project
+ */
 function setup(api, config, region, defaults) {
     const rl = readline.createInterface({
         input: process.stdin,
@@ -31,11 +39,13 @@ function setup(api, config, region, defaults) {
         ],
         () => {
             Promise.resolve()
-                .then(() => createApp(api, name, description))
-                .then(res => createWidget(api, res, defaults.widget))
-                .then(res => createBucket(api, res))
-                .then(res => createBucketEntry(api, res))
-                .then(res => uploadWidget(api, res, defaults))
+                .then(() => createApp(this.logger, api, name, description))
+                .then(res =>
+                    createWidget(this.logger, api, res, defaults.widget)
+                )
+                .then(res => createBucket(this.logger, api, res))
+                .then(res => createBucketEntry(this.logger, api, res))
+                .then(res => uploadWidget(this.logger, api, res, defaults))
                 .then(res => {
                     config[region].app_json = res.app
                     config[region].widget_json = stripFields(res.widget)
@@ -46,7 +56,7 @@ function setup(api, config, region, defaults) {
                     )
                 })
                 .catch(err => {
-                    console.error(err)
+                    this.logger.error(err)
                     process.exit(1)
                 })
                 .then(() => rl.close())
@@ -54,7 +64,7 @@ function setup(api, config, region, defaults) {
     )
 }
 
-function createApp(api, name, description) {
+function createApp(logger, api, name, description) {
     const app = {
         name,
         description
@@ -63,14 +73,15 @@ function createApp(api, name, description) {
     return new Promise((resolve, reject) => {
         api('/api/apps', app)
             .then(res => {
-                console.info('Created app successfully', JSON.stringify(res))
+                logger.info('Created app')
+                logger.debug(res)
                 resolve({ app: stripFields(res) })
             })
             .catch(err => reject(err))
     })
 }
 
-function createWidget(api, settings, widgetDefaults) {
+function createWidget(logger, api, settings, widgetDefaults) {
     const widget = Object.assign(
         {
             app_id: settings.app.id,
@@ -85,10 +96,8 @@ function createWidget(api, settings, widgetDefaults) {
     return new Promise((resolve, reject) => {
         api('/api/apps/widgets', widget)
             .then(res => {
-                console.info(
-                    'Created widget successfully:',
-                    JSON.stringify(res)
-                )
+                logger.debug(res)
+                logger.info('Created widget')
                 resolve({
                     app: settings.app,
                     widget: stripFields(res)
@@ -98,7 +107,7 @@ function createWidget(api, settings, widgetDefaults) {
     })
 }
 
-function createBucket(api, settings) {
+function createBucket(logger, api, settings) {
     const bucket = {
         type: 'public'
     }
@@ -106,10 +115,8 @@ function createBucket(api, settings) {
     return new Promise((resolve, reject) => {
         api(`/api/storage/buckets/${settings.widget.id}`, bucket, 'put')
             .then(res => {
-                console.info(
-                    'Created bucket successfully:',
-                    JSON.stringify(res)
-                )
+                logger.info('Created bucket')
+                logger.debug(res)
                 resolve({
                     app: settings.app,
                     widget: settings.widget
@@ -119,7 +126,7 @@ function createBucket(api, settings) {
     })
 }
 
-function createBucketEntry(api, settings) {
+function createBucketEntry(logger, api, settings) {
     const bucket = {
         type: 'public'
     }
@@ -127,10 +134,8 @@ function createBucketEntry(api, settings) {
     return new Promise((resolve, reject) => {
         api(`/api/storage/buckets/${settings.widget.id}/entry`, bucket, 'put')
             .then(res => {
-                console.info(
-                    'Created bucket entry successfully:',
-                    JSON.stringify(res)
-                )
+                logger.info('Created bucket entry')
+                logger.debug(res)
                 resolve({
                     app: settings.app,
                     widget: settings.widget
@@ -140,7 +145,7 @@ function createBucketEntry(api, settings) {
     })
 }
 
-function uploadWidget(api, settings, defaults) {
+function uploadWidget(logger, api, settings, defaults) {
     let widgetSettings = Object.assign({}, settings.widget)
 
     // widget id should not be passed into the payload
@@ -158,10 +163,8 @@ function uploadWidget(api, settings, defaults) {
     return new Promise((resolve, reject) =>
         api(`/api/apps/widgets/${settings.widget.id}`, widget, 'put')
             .then(res => {
-                console.info(
-                    'Uploaded widget successfully:',
-                    JSON.stringify(res)
-                )
+                logger.info('Uploaded widget')
+                logger.debug(res)
 
                 resolve({
                     app: settings.app,

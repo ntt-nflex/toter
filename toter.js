@@ -8,6 +8,15 @@ const getFile = require('./utils/get-file')
 const command = argv._[0] || 'help'
 const region = argv.r || argv.region || defaults.region
 
+const verbose = argv.v || argv.verbose
+
+// logger is essentially a wrapper around console that
+// only prints debug only if verbose flag is active
+const logger = console
+if (!verbose) {
+    logger.debug = () => {}
+}
+
 // only config and help commands do not require config.json
 // in order to be executed as intended
 const commandsWithoutConfig = ['config', 'help']
@@ -51,19 +60,27 @@ if (!commandsWithoutConfig.includes(command)) {
 }
 
 const commands = {
-    approve: require('./commands/approve').bind(null, api, config, region),
-    config: require('./commands/config').bind(null, defaults.settingsPath),
-    help: require('./commands/help'),
+    approve: require('./commands/approve').bind(
+        { logger },
+        api,
+        config,
+        region
+    ),
+    config: require('./commands/config').bind(
+        { logger },
+        defaults.settingsPath
+    ),
+    help: require('./commands/help').bind({ logger }),
     setup: require('./commands/setup').bind(
-        null,
+        { logger },
         api,
         config,
         region,
         defaults
     ),
-    submit: require('./commands/submit').bind(null, api, config, region),
-    update: require('./commands/update').bind(null, api, config, region),
-    upload: require('./commands/upload').bind(null, api, config, region)
+    submit: require('./commands/submit').bind({ logger }, api, config, region),
+    update: require('./commands/update').bind({ logger }, api, config, region),
+    upload: require('./commands/upload').bind({ logger }, api, config, region)
 }
 
 // run the command

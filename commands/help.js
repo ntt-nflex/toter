@@ -10,12 +10,18 @@ commands:
     setup           Setup your repository as a Marketplace widget
     submit          Submit your widget for review
     upload          Upload the contents of your dist/ folder to StormDrive
+    -v --verbose    Displays detailed information about requests made
 
 options:
     -r --region      Region to use other than default
 `
 
-module.exports = () => {
-    console.log(helpMessage)
+module.exports = help
+
+/**
+ * Displays available commands
+ */
+function help() {
+    this.logger.info(helpMessage)
     process.exit()
 }

@@ -18,6 +18,10 @@
     {
       "name": "Richard Frost",
       "email": "richard.frost@headforwards.com"
+    },
+    {
+      "name": "Filipe Almeida",
+      "email": "filipe.almeida@headforwards.com"
     }
   ],
   "license": "ISC",
@@ -25,10 +29,9 @@
     "url": "https://github.com/ntt-nflex/toter/issues"
   },
   "homepage": "https://github.com/ntt-nflex/toter#readme",
-  "preferGlobal": "true",
+  "preferGlobal": true,
   "dependencies": {
     "async": "^2.6.0",
-    "is-installed-globally": "^0.1.0",
     "minimist": "^1.2.0"
   }
 }
