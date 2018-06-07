@@ -15,17 +15,7 @@ function config(settingsPath) {
     const usingFlags =
         (argv.u || argv.url) && (argv.k || argv.key) && (argv.s || argv.secret)
 
-    const settings = getFile(settingsPath)
-    if (!settings) {
-        this.logger.error('No settings file found at', settingsPath)
-        process.exit(1)
-    }
-
-    const hasRegions = settings.regions || Object.keys(settings.regions).length
-    if (!hasRegions) {
-        this.logger.warn(`Settings file at ${settingsPath} has no regions`)
-        settings.regions = {}
-    }
+    let settings = getFile(settingsPath) || { regions: {} }
 
     if (usingFlags) {
         generateConfigWithFlags(settings, settingsPath)
