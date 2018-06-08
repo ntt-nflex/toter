@@ -12,7 +12,7 @@ const verbose = argv.v || argv.verbose
 
 // logger is essentially a wrapper around console that
 // only prints debug only if verbose flag is active
-const logger = console
+let logger = console
 if (!verbose) {
     logger.debug = () => {}
 }
@@ -55,7 +55,8 @@ if (!commandsWithoutConfig.includes(command)) {
     // only be done once
     api = require('./api/api').bind({
         credentials: credentials,
-        folder: defaults.folder
+        folder: defaults.folder,
+        logger: logger
     })
 }
 
