@@ -1,3 +1,5 @@
+const getFile = require('./../utils/get-file')
+
 module.exports = upload
 
 /**
@@ -7,7 +9,9 @@ module.exports = upload
  * @param  {[object]} config configuration file's data
  * @param  {[string]} region region to filter the configuration file
  */
-function upload(api, config, region) {
+function upload(api, configPath, region) {
+    this.logger.info(configPath)
+    const config = getFile(configPath)
     const hasWidgetId =
         config[region].widget_json && config[region].widget_json.id
     if (!hasWidgetId) {
@@ -16,9 +20,13 @@ function upload(api, config, region) {
     }
 
     const id = config[region].widget_json.id
+
+    let widget = config[region].widget_json
+
     const bucket = { type: 'public' }
 
     Promise.resolve()
+        .then(() => updateWidget(this.logger, api, widget))
         .then(() => api(`/api/storage/buckets/${id}`, bucket, 'put'))
         .then(res => {
             this.logger.debug('Bucket updated')
@@ -34,4 +42,19 @@ function upload(api, config, region) {
             this.logger.error('Unable to upload widget:', err)
             process.exit(1)
         })
+}
+
+function updateWidget(logger, api, widget) {
+    return new Promise((resolve, reject) => {
+        const id = widget.id
+        delete widget.id
+        logger.debug(`Uploading widget with following configuration: ${widget}`)
+        return api(`/api/apps/widgets/${id}`, widget, 'put')
+            .then(res => {
+                logger.debug(res)
+                logger.info('Widget config updated successfully')
+                resolve()
+            })
+            .catch(err => reject(err))
+    })
 }
