@@ -81,7 +81,12 @@ const commands = {
     ),
     submit: require('./commands/submit').bind({ logger }, api, config, region),
     update: require('./commands/update').bind({ logger }, api, config, region),
-    upload: require('./commands/upload').bind({ logger }, api, config, region)
+    upload: require('./commands/upload').bind(
+        { logger },
+        api,
+        defaults.configPath,
+        region
+    )
 }
 
 // run the command
