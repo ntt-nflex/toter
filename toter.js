@@ -25,8 +25,12 @@ let api, config
 if (!commandsWithoutConfig.includes(command)) {
     const defaultConfig = {
         default: {
-            app_json: {},
-            widget_json: {}
+            app_json: {
+                distribution: ['all']
+            },
+            widget_json: {
+                use_public_widget: true
+            }
         }
     }
 
