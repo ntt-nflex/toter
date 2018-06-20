@@ -48,7 +48,10 @@ function setup(api, config, region, defaults) {
                 .then(res => uploadWidget(this.logger, api, res, defaults))
                 .then(res => {
                     config[region].app_json = res.app
+                    config[region].app_json.distribution = ['all']
+
                     config[region].widget_json = stripFields(res.widget)
+                    config[region].widget_json.use_public_bucket = true
 
                     writeFileSync(
                         'config.json',
@@ -109,7 +112,13 @@ function createWidget(logger, api, settings, widgetDefaults) {
 
 function createBucket(logger, api, settings) {
     const bucket = {
-        type: 'public'
+        type: 'shared',
+        acl: [
+            {
+                customer_id: '00000000-0000-0000-0000-000000000000',
+                permission: 'ro'
+            }
+        ]
     }
 
     return new Promise((resolve, reject) => {
