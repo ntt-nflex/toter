@@ -19,7 +19,7 @@ if (!verbose) {
 
 // only config and help commands do not require config.json
 // in order to be executed as intended
-const commandsWithoutConfig = ['config', 'help']
+const commandsWithoutConfig = ['config', 'help', 'delete']
 
 let api, config
 if (!commandsWithoutConfig.includes(command)) {
@@ -49,7 +49,7 @@ if (!commandsWithoutConfig.includes(command)) {
 
     const settings = getFile(defaults.settingsPath)
     if (!settings) {
-        console.error('No settings file found at', settingsPath)
+        console.error('No settings file found at', defaults.settingsPath)
         process.exit(1)
     }
     const credentials = require('./utils/credentials')(settings, region)
@@ -62,7 +62,7 @@ if (!commandsWithoutConfig.includes(command)) {
         folder: defaults.folder,
         logger: logger
     })
-}
+} 
 
 const commands = {
     approve: require('./commands/approve').bind(
@@ -90,6 +90,15 @@ const commands = {
         api,
         defaults.configPath,
         region
+    ),
+    // delete: require('./commands/deleteWidget').bind(
+    //     { logger },
+    //     api,
+    //     config,
+    //     region
+    // )
+    delete: require('./commands/deleteWidget').bind(
+        { logger }
     )
 }
 
