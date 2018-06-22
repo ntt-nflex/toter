@@ -64,7 +64,7 @@ function updateWidget(logger, api, settings, widget, defaults) {
         widget = Object.assign(defaults.widget, widget, {
             type: 'marketplace',
             // the bucket was created with using the widget's id as name
-            source: `/cmp/api/storage/buckets/${widget.id}/${defaults.entry}`
+            source: `/cmp/api/storage/buckets/${id}/${defaults.entry}`
         })
 
         logger.debug(`Uploading widget with following configuration: ${widget}`)
