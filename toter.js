@@ -84,7 +84,13 @@ const commands = {
         defaults
     ),
     submit: require('./commands/submit').bind({ logger }, api, config, region),
-    update: require('./commands/update').bind({ logger }, api, config, region),
+    update: require('./commands/update').bind(
+        { logger },
+        api,
+        config,
+        region,
+        defaults
+    ),
     upload: require('./commands/upload').bind(
         { logger },
         api,
