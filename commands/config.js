@@ -12,11 +12,7 @@ module.exports = config
  * @param  {[string]} settingsPath path to configuration file
  */
 
-function config(settingsPath) {
 
-    this.logger.info("yo yo")
-}
-/*
 function config(settingsPath) {
     const usingFlags =
         (argv.u || argv.url) && (argv.k || argv.key) && (argv.s || argv.secret)
@@ -29,7 +25,7 @@ function config(settingsPath) {
         generateConfigWithoutFlags(settings, settingsPath)
     }
 }
-*/
+
 function generateConfigWithFlags(settings, settingsPath) {
     settings.regions[argv.n || 'default'] = {
         region: argv.u || argv.url,

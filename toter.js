@@ -19,7 +19,8 @@ if (!verbose) {
 
 // only config and help commands do not require config.json
 // in order to be executed as intended
-const commandsWithoutConfig = ['config', 'help', 'delete']
+
+const commandsWithoutConfig = ['config', 'help' ]
 
 let api, config
 if (!commandsWithoutConfig.includes(command)) {
@@ -57,6 +58,7 @@ if (!commandsWithoutConfig.includes(command)) {
     // inject the bare minimum properties required for api to work
     // since properties such as credentials use file IO so it should
     // only be done once
+
     api = require('./api/api').bind({
         credentials: credentials,
         folder: defaults.folder,
@@ -91,14 +93,11 @@ const commands = {
         defaults.configPath,
         region
     ),
-    // delete: require('./commands/deleteWidget').bind(
-    //     { logger },
-    //     api,
-    //     config,
-    //     region
-    // )
-    delete: require('./commands/deleteWidget').bind(
-        { logger }
+    remove: require('./commands/remove').bind(
+        { logger },
+        api,
+        config,
+        region
     )
 }
 
