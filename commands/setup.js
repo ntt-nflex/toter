@@ -67,10 +67,11 @@ function setup(api, config, region, defaults) {
     )
 }
 
-function createApp(logger, api, name, description) {
+function createApp(logger, api, name, description, distribution = ['all']) {
     const app = {
         name,
-        description
+        description,
+        distribution
     }
 
     return new Promise((resolve, reject) => {
@@ -91,7 +92,8 @@ function createWidget(logger, api, settings, widgetDefaults) {
             description: settings.app.description,
             source: 'test',
             title: settings.app.name,
-            type: 'marketplace'
+            type: 'marketplace',
+            use_public_bucket: true
         },
         widgetDefaults
     )
