@@ -27,7 +27,7 @@ function api(endpoint, data = false, method = 'post', contentType = 'json') {
         // TODO: refactor curl logic into http client
         const curlCommand = `${tar1} curl -u ${key}:${secret} https://${region}/cmp/basic${endpoint} ${secureString} -X ${method.toUpperCase()} -H "Content-Type:application/${contentType}" ${dataString} ${tar2}`
 
-        const response = execSync(curlCommand, {
+        let response = execSync(curlCommand, {
             // using pipe here so that the curl command
             // does not output to terminal
             stdio: 'pipe'
@@ -35,7 +35,7 @@ function api(endpoint, data = false, method = 'post', contentType = 'json') {
 
         // response can be empty in case of HTTP 204 No Content
         if (response) {
-            JSON.parse(response)
+            response = JSON.parse(response)
         }
 
         // some payload retrieve status_code, others retrieve error_code
