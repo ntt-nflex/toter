@@ -24,7 +24,7 @@ const commandsWithoutConfig = ['config', 'help']
 let api, config
 if (!commandsWithoutConfig.includes(command)) {
     const defaultConfig = {
-        default: {
+        [region]: {
             app_json: {
                 distribution: ['all']
             },
@@ -39,7 +39,7 @@ if (!commandsWithoutConfig.includes(command)) {
     // TODO: This is a migration script, remove in a few versions time
     if (config.app_json || config.widget_json) {
         config = {
-            default: {
+            [region]: {
                 app_json: config.app_json,
                 widget_json: config.widget_json
             }
