@@ -44,8 +44,7 @@ function remove(api, config, region) {
 }
 
 function removeProcess(logger, idApp, idWidget, api) {
-    logger.info('lets the party stated!', idApp, idWidget)
-    
+
     Promise.resolve()
         .then(() => removeBucket(logger, api, idWidget))
         .then(() => removeWidget(logger, api, idWidget))
