@@ -59,8 +59,7 @@ if (!commandsWithoutConfig.includes(command)) {
     // inject the bare minimum properties required for api to work
     // since properties such as credentials use file IO so it should
     // only be done once
-    console.log(credentials);
-    
+
     api = require('./api/api').bind({
         credentials: credentials,
         folder: defaults.folder,

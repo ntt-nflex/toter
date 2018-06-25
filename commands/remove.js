@@ -12,35 +12,31 @@ module.exports = remove
  * @param  {[object]} config configuration file's data
  * @param  {[string]} region region to filter the configuration file
  */
-
 function remove(api, config, region) {
 
     let idApp = argv.idApp || argv.a;
     let idWidget = argv.idWidget || argv.w;
 
-    if( idApp && idWidget ) {
+    if( !idApp && !idWidget ) {
 
-        idApp = idApp.trim();
-        idWidget = idWidget.trim();
+        const hasAppId =
+            config[region].app_json && config[region].app_json.id
+        const hasWidgetId =
+            config[region].widget_json && config[region].widget_json.id
 
-        removeProcess(this.logger, idApp, idWidget, api)
-        return;
+        if (!hasWidgetId || !hasAppId) {
+            this.logger.error('Please run setup first - app or widget ID is missing!')
+            process.exit(1)
+        }
+        
+        idApp = config[region].app_json.id
+        idWidget = config[region].widget_json.id
     }
 
-    const hasAppId =
-        config[region].app_json && config[region].app_json.id
-    const hasWidgetId =
-        config[region].widget_json && config[region].widget_json.id
+    idApp = idApp.trim()
+    idWidget = idWidget.trim()
 
-    if (!hasWidgetId || !hasAppId) {
-        this.logger.error('Please run setup first - app or widget ID is missing!')
-        process.exit(1)
-    }
-    
-    const idAppConfig = config[region].widget_json.id
-    const idWidgetConfig = config[region].widget_json.id
-
-    removeProcess(this.logger, idAppConfig, idWidgetConfig, api);
+    removeProcess(this.logger, idApp, idWidget, api)
 }
 
 function removeProcess(logger, idApp, idWidget, api) {

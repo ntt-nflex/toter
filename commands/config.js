@@ -11,8 +11,6 @@ module.exports = config
  *
  * @param  {[string]} settingsPath path to configuration file
  */
-
-
 function config(settingsPath) {
     const usingFlags =
         (argv.u || argv.url) && (argv.k || argv.key) && (argv.s || argv.secret)
