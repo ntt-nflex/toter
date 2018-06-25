@@ -46,10 +46,10 @@ If you need to update your widget or app settings at any point, modify your conf
 ## Remove your widget and app
 
 If you need tp remove your widget and app you can do that in two ways.:
-    - From the project's folder by running:
-        toter remove
-    - From the cli by writing again "toter remove" and adding the flags "-a" or "--idApp" with the id of the app and "-w" or "--idWidget" with the id of the widget:
-        toter remove -a appId123 -w widgetId123
+From the project's folder by running:
+     toter remove
+From the cli by writing again "toter remove" and adding the flags "-a" or "--idApp" with the id of the app and "-w" or "--idWidget" with the id of the widget:
+     toter remove -a appId123 -w widgetId123
 
 ## Submit your widget for review
 
