@@ -12,8 +12,7 @@ module.exports = api
  * @return {[object]} response payload
  */
 function api(endpoint, data = false, method = 'post', contentType = 'json') {
-    this.logger.debug(`HTTP ${method} ${endpoint}`)
-
+    this.logger.debug(`HTTP ${method} ${endpoint}`) 
     return new Promise((resolve, reject) => {
         const { key, secret, region } = this.credentials
         const tar1 =

@@ -19,10 +19,12 @@ if (!verbose) {
 
 // only config and help commands do not require config.json
 // in order to be executed as intended
-const commandsWithoutConfig = ['config', 'help']
+
+const commandsWithoutConfig = ['config', 'help' ]
 
 let api, config
 if (!commandsWithoutConfig.includes(command)) {
+
     const defaultConfig = {
         [region]: {
             app_json: {
@@ -49,7 +51,7 @@ if (!commandsWithoutConfig.includes(command)) {
 
     const settings = getFile(defaults.settingsPath)
     if (!settings) {
-        console.error('No settings file found at', settingsPath)
+        console.error('No settings file found at', defaults.settingsPath)
         process.exit(1)
     }
     const credentials = require('./utils/credentials')(settings, region)
@@ -57,12 +59,13 @@ if (!commandsWithoutConfig.includes(command)) {
     // inject the bare minimum properties required for api to work
     // since properties such as credentials use file IO so it should
     // only be done once
+
     api = require('./api/api').bind({
         credentials: credentials,
         folder: defaults.folder,
         logger: logger
     })
-}
+} 
 
 const commands = {
     approve: require('./commands/approve').bind(
@@ -95,6 +98,12 @@ const commands = {
         { logger },
         api,
         defaults.configPath,
+        region
+    ),
+    remove: require('./commands/remove').bind(
+        { logger },
+        api,
+        config,
         region
     )
 }

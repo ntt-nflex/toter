@@ -8,8 +8,14 @@ module.exports = getCredentials
  * @return {[object]} an object with the key, secret and region properties
  */
 function getCredentials(settings, region) {
+
     if (settings && !settings.regions) {
         console.error('Please run config')
+        process.exit(1)
+    }
+
+    if (!settings.regions.hasOwnProperty(region)) {
+        console.error(region, 'region does not exist!')
         process.exit(1)
     }
 
