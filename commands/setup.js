@@ -28,15 +28,13 @@ function setup(region, defaults) {
         newRegion
 
     async.series(
-    [       
+
+        [       
             callback => {
-                console.log(region, defaults.region);
                 if(region !== defaults.region) {
-                    console.log("here");
+
                     newRegion = region
-
-                    config.region = newRegion
-
+                    config['region'] = newRegion
                     config[newRegion] = {
                         app_json: {
                             distribution: ['all']
@@ -123,6 +121,9 @@ function setup(region, defaults) {
 
                     config[newRegion].widget_json = stripFields(res.widget)
                     config[newRegion].widget_json.use_public_bucket = true
+
+                    // Todo: add schema to the config file
+                    
 
                     writeFileSync(
                         'config.json',
