@@ -1,12 +1,10 @@
 #!/usr/bin/env node
-
-const { writeFileSync } = require('fs')
 const argv = require('minimist')(process.argv.slice(2))
 const defaults = require('./constants/defaults')
 const getFile = require('./utils/get-file')
 
 const command = argv._[0] || 'help'
-const region = argv.r || argv.region || defaults.region
+let region = argv.r || argv.region || defaults.region
 
 const verbose = argv.v || argv.verbose
 
@@ -20,36 +18,35 @@ if (!verbose) {
 // only config and help commands do not require config.json
 // in order to be executed as intended
 
-const commandsWithoutConfig = ['config', 'help' ]
+const commandsWithoutConfig = ['config', 'help', 'create']
 
 let api, config
+
 if (!commandsWithoutConfig.includes(command)) {
 
-    const defaultConfig = {
-        [region]: {
-            app_json: {
-                distribution: ['all']
-            },
-            widget_json: {
-                use_public_widget: true
-            }
-        }
+    config = getFile(defaults.configPath)
+
+    if (!config || isEmpty(config) && command !== 'remove') {
+
+        logger.info('You have to create a config file first.')
+
+        require('./commands/lib/createConfig').bind(
+            { logger },
+            defaults,
+            region
+        )()
+
+        return;
     }
 
-    config = getFile(defaults.configPath) || defaultConfig
+    if(config[defaults.region].hasOwnProperty('defaultRegion') &&
+    region === defaults.region) {
 
-    // TODO: This is a migration script, remove in a few versions time
-    if (config.app_json || config.widget_json) {
-        config = {
-            [region]: {
-                app_json: config.app_json,
-                widget_json: config.widget_json
-            }
-        }
-        writeFileSync('config.json', JSON.stringify(config, null, 4))
+        region = config[defaults.region].defaultRegion
     }
 
     const settings = getFile(defaults.settingsPath)
+
     if (!settings) {
         console.error('No settings file found at', defaults.settingsPath)
         process.exit(1)
@@ -78,11 +75,15 @@ const commands = {
         { logger },
         defaults.settingsPath
     ),
+    create: require('./commands/create').bind(
+        { logger },
+        defaults,
+        region
+    ),
     help: require('./commands/help').bind({ logger }),
     setup: require('./commands/setup').bind(
         { logger },
         api,
-        config,
         region,
         defaults
     ),
@@ -108,5 +109,13 @@ const commands = {
     )
 }
 
+function isEmpty(obj) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
+
 // run the command
-commands[command]()
+// commands[command]()

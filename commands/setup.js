@@ -14,24 +14,15 @@ module.exports = setup
  * @param  {[object]} defaults default values used throughout the project
  */
 function setup(api, config, region, defaults) {
+    
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
     })
 
-    let name, description, distribution
+    let name
+    let description
 
-    const availableRegions = [
-        'all',
-        'ap',
-        'au',
-        'core',
-        'eu',
-        'in',
-        'jp',
-        'sandbox',
-        'us'
-    ]
     async.series(
         [
             callback => {
@@ -45,35 +36,6 @@ function setup(api, config, region, defaults) {
                     description = input
                     callback()
                 })
-            },
-            callback => {
-                rl.question(
-                    `Widget deployment location (pick one or many separated by comma) [${availableRegions.join(
-                        ','
-                    )}]: `,
-                    function(input) {
-                        input = input.replace(/(\s|\n|\t|\r)/g, '') || 'all'
-
-                        // using a Set here to avoid duplicate region entries
-                        let regions = new Set(input.trim().split(','))
-
-                        regions.forEach(region => {
-                            if (!availableRegions.includes(region)) {
-                                console.error('Invalid region', region)
-                                process.exit(1)
-                            }
-                        })
-
-                        // if all is set, no other region should be specified
-                        if (regions.has('all')) {
-                            regions = ['all']
-                        }
-
-                        distribution = Array.from(regions)
-                        console.info(distribution)
-                        callback()
-                    }
-                )
             }
         ],
         () => {
@@ -87,7 +49,7 @@ function setup(api, config, region, defaults) {
                 .then(res => uploadWidget(this.logger, api, res, defaults))
                 .then(res => {
                     config[region].app_json = res.app
-                    config[region].app_json.distribution = distribution
+                    config[region].app_json.distribution = ['all']
 
                     config[region].widget_json = stripFields(res.widget)
                     config[region].widget_json.use_public_bucket = true
