@@ -152,14 +152,18 @@ function setup(region, defaults) {
                 .then(res => createBucketEntry(this.logger, api, res))
                 .then(res => uploadWidget(this.logger, api, res, defaults))
                 .then(res => {
+
+                    let schema = getFile(defaults.schemaPath)
+
                     config[newRegion].app_json = res.app
                     config[newRegion].app_json.distribution = ['all']
 
                     config[newRegion].widget_json = stripFields(res.widget)
                     config[newRegion].widget_json.use_public_bucket = true
 
-                    // Todo: add schema to the config file
-                    
+                    if(schema) {
+                        config[newRegion].widget_json.schema = schema.schema
+                    } 
 
                     writeFileSync(
                         'config.json',
