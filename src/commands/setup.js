@@ -18,13 +18,23 @@ function setup(region, defaults) {
         input: process.stdin,
         output: process.stdout
     })
-
+    const availableRegions = [
+        'all',
+        'ap',
+        'au',
+        'core',
+        'eu',
+        'in',
+        'jp',
+        'sandbox',
+        'us'
+    ]
     let name,
         description,
         config = {},
         api,
         newRegion
-
+        
     async.series(
 
         [       
@@ -217,8 +227,6 @@ function createWidget(logger, api, settings, widgetDefaults) {
 }
 
 function createBucket(logger, api, settings) {
-
-    console.info(settings)
 
     const bucket = {
         type: 'shared',
