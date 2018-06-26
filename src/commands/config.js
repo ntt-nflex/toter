@@ -9,7 +9,7 @@ module.exports = config
 /**
  * Sets up global settings file
  *
- * @param  {[string]} settingsPath path to configuration file
+ * @param  {string} settingsPath path to configuration file
  */
 function config(settingsPath) {
     const usingFlags =

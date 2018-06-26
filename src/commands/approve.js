@@ -3,9 +3,9 @@ module.exports = approve
 /**
  * Approves widget via HTTP endpoint based on configuration file
  *
- * @param  {[function]} api api client
- * @param  {[object]} config configuration file's data
- * @param  {[string]} region region to filter the configuration file
+ * @param  {function} api api client
+ * @param  {object} config configuration file's data
+ * @param  {string} region region to filter the configuration file
  */
 function approve(api, config, region) {
     const hasAppId = config[region].app_json && config[region].app_json.id

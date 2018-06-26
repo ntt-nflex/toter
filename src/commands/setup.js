@@ -8,10 +8,10 @@ module.exports = setup
 /**
  * Sets up widget configuration file
  *
- * @param  {[function]} api api client
- * @param  {[object]} config configuration file's data
- * @param  {[string]} region region to filter the configuration file
- * @param  {[object]} defaults default values used throughout the project
+ * @param  {function} api api client
+ * @param  {object} config configuration file's data
+ * @param  {string} region region to filter the configuration file
+ * @param  {object} defaults default values used throughout the project
  */
 function setup(api, config, region, defaults) {
     const rl = readline.createInterface({

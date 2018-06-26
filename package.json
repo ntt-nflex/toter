@@ -4,7 +4,10 @@
   "description": "Toter Client and Command Line Tools for publishing apps/widgets to Marketplace",
   "main": "./toter.js",
   "bin": {
-    "toter": "./toter.js"
+    "toter": "./src/toter.js"
+  },
+  "scripts": {
+    "docs": "node_modules/jsdoc/jsdoc.js src package.json -r -d ./docs"
   },
   "repository": {
     "type": "git",
@@ -33,5 +36,8 @@
   "dependencies": {
     "async": "^2.6.0",
     "minimist": "^1.2.0"
+  },
+  "devDependencies": {
+    "jsdoc": "^3.5.5"
   }
 }
