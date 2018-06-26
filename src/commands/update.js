@@ -1,3 +1,4 @@
+const argv = require('minimist')(process.argv.slice(2))
 const stripFields = require('./../utils/strip-fields')
 
 module.exports = update
@@ -27,6 +28,7 @@ function update(api, config, region, defaults) {
             updateWidget(this.logger, api, settings, widget, defaults)
         )
         .then(settings => updateBucket(this.logger, api, settings))
+        .then(() => (argv.f || argv.force) && this.onForce())
         .catch(err => {
             this.logger.error(`Unable to update widget: ${JSON.stringify(err)}`)
             process.exit(1)
