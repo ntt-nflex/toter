@@ -2,6 +2,7 @@ const async = require('async')
 const { writeFileSync } = require('fs')
 const readline = require('readline')
 const stripFields = require('./../utils/strip-fields')
+const getFile = require('../utils/get-file')
 
 module.exports = setup
 
@@ -13,18 +14,69 @@ module.exports = setup
  * @param  {[string]} region region to filter the configuration file
  * @param  {[object]} defaults default values used throughout the project
  */
-function setup(api, config, region, defaults) {
-    
+function setup(region, defaults) {
+
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
     })
 
-    let name
-    let description
+    let name,
+        description,
+        config = {},
+        api,
+        newRegion
 
     async.series(
-        [
+    [       
+            callback => {
+                console.log(region, defaults.region);
+                if(region !== defaults.region) {
+                    console.log("here");
+                    newRegion = region
+
+                    config.region = newRegion
+
+                    config[newRegion] = {
+                        app_json: {
+                            distribution: ['all']
+                        },
+                        widget_json: {
+                            use_public_widget: true
+                        }
+                    }
+                    
+                    callback()
+                } else {
+
+                    rl.question(
+                        `Which region do you want to use? (default one is ${defaults.region}) `,
+                        function(input) {
+    
+                            newRegion = input.trim()
+    
+                            if(!input) {
+    
+                                newRegion = defaults.region
+                            } else {
+    
+                                config['region'] = newRegion
+                            }
+    
+                            config[newRegion] = {
+                                app_json: {
+                                    distribution: ['all']
+                                },
+                                widget_json: {
+                                    use_public_widget: true
+                                }
+                            }
+                            
+                            callback()
+                        }
+                    )
+                }
+            },
             callback => {
                 rl.question('App/Widget name: ', function(input) {
                     name = input
@@ -39,20 +91,38 @@ function setup(api, config, region, defaults) {
             }
         ],
         () => {
-            Promise.resolve()
+
+            const settings = getFile(defaults.settingsPath) 
+
+            if (!settings) {
+                console.error('No settings file found at', defaults.settingsPath)
+                process.exit(1)
+            }
+
+            const credentials = require('../utils/credentials')(settings, newRegion)
+
+            api = require('../api/api').bind({
+                credentials: credentials,
+                folder: defaults.folder,
+                logger: this.logger
+            })
+
+            return Promise.resolve()
                 .then(() => createApp(this.logger, api, name, description))
-                .then(res =>
+                .then(res => 
                     createWidget(this.logger, api, res, defaults.widget)
                 )
-                .then(res => createBucket(this.logger, api, res))
+                .then(res => 
+                    createBucket(this.logger, api, res)
+                )
                 .then(res => createBucketEntry(this.logger, api, res))
                 .then(res => uploadWidget(this.logger, api, res, defaults))
                 .then(res => {
-                    config[region].app_json = res.app
-                    config[region].app_json.distribution = ['all']
+                    config[newRegion].app_json = res.app
+                    config[newRegion].app_json.distribution = ['all']
 
-                    config[region].widget_json = stripFields(res.widget)
-                    config[region].widget_json.use_public_bucket = true
+                    config[newRegion].widget_json = stripFields(res.widget)
+                    config[newRegion].widget_json.use_public_bucket = true
 
                     writeFileSync(
                         'config.json',
@@ -69,6 +139,7 @@ function setup(api, config, region, defaults) {
 }
 
 function createApp(logger, api, name, description, distribution = ['all']) {
+
     const app = {
         name,
         description,
@@ -87,6 +158,7 @@ function createApp(logger, api, name, description, distribution = ['all']) {
 }
 
 function createWidget(logger, api, settings, widgetDefaults) {
+
     const widget = Object.assign(
         {
             app_id: settings.app.id,
@@ -104,16 +176,23 @@ function createWidget(logger, api, settings, widgetDefaults) {
             .then(res => {
                 logger.debug(res)
                 logger.info('Created widget')
+                
                 resolve({
                     app: settings.app,
                     widget: stripFields(res)
                 })
             })
-            .catch(err => reject(err))
+            .catch(err => {
+                console.error(err)
+                reject(err)
+            })
     })
 }
 
 function createBucket(logger, api, settings) {
+
+    console.info(settings)
+
     const bucket = {
         type: 'shared',
         acl: [

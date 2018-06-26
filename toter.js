@@ -2,6 +2,7 @@
 const argv = require('minimist')(process.argv.slice(2))
 const defaults = require('./constants/defaults')
 const getFile = require('./utils/get-file')
+const isEmpty = require('./utils/empty-file')
 
 const command = argv._[0] || 'help'
 let region = argv.r || argv.region || defaults.region
@@ -18,31 +19,31 @@ if (!verbose) {
 // only config and help commands do not require config.json
 // in order to be executed as intended
 
-const commandsWithoutConfig = ['config', 'help', 'create']
+const commandsWithoutConfig = ['config', 'help', 'setup']
 
 let api, config
 
 if (!commandsWithoutConfig.includes(command)) {
-
+    
     config = getFile(defaults.configPath)
 
-    if (!config || isEmpty(config) && command !== 'remove') {
+    if ((!config || isEmpty(config)) && command !== 'remove') {
 
         logger.info('You have to create a config file first.')
 
-        require('./commands/lib/createConfig').bind(
+        require('./commands/setup').bind(
             { logger },
-            defaults,
-            region
+            region,
+            defaults
         )()
 
         return;
     }
 
-    if(config[defaults.region].hasOwnProperty('defaultRegion') &&
+    if(config.hasOwnProperty('region') &&
     region === defaults.region) {
 
-        region = config[defaults.region].defaultRegion
+        region = config.region
     }
 
     const settings = getFile(defaults.settingsPath)
@@ -83,7 +84,6 @@ const commands = {
     help: require('./commands/help').bind({ logger }),
     setup: require('./commands/setup').bind(
         { logger },
-        api,
         region,
         defaults
     ),
@@ -109,13 +109,5 @@ const commands = {
     )
 }
 
-function isEmpty(obj) {
-    for(var key in obj) {
-        if(obj.hasOwnProperty(key))
-            return false;
-    }
-    return true;
-}
-
 // run the command
-// commands[command]()
+commands[command]()
