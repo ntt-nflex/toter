@@ -6,9 +6,9 @@ module.exports = update
  * Updates app, widget and bucket via HTTP endpoint
  * based on configuration file
  *
- * @param  {[function]} api api client
- * @param  {[object]} config configuration file's data
- * @param  {[string]} region region to filter the configuration file
+ * @param  {function} api api client
+ * @param  {object} config configuration file's data
+ * @param  {string} region region to filter the configuration file
  */
 function update(api, config, region, defaults) {
     const hasWidgetId =
