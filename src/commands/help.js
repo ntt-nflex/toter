@@ -6,13 +6,15 @@ commands:
     -n --new        Set the region name - used to specify different regions
     -s --secret     Set the secret
     -u --url        Set the region url
-    -w --idWidget   Set the id of the widget when used with remove
-    -a --idApp      Set the id of the app when used with remove
-    help            Print this list and exit
     setup           Setup your repository as a Marketplace widget
     submit          Submit your widget for review
-    upload          Upload the contents of your dist/ folder to StormDrive
+    update          Updates the contents of your dist/ folder to StormDrive and
+                    app and widget configurations to Marketplace
+    -f --force      Update also submits and approves the widget
     remove          Remove your widget and app from marketplace
+    -w --idWidget   Set the id of the widget when used with remove
+    -a --idApp      Set the id of the app when used with remove
+
     -v --verbose    Displays detailed information about requests made
 
 options:

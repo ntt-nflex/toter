@@ -66,34 +66,65 @@ if (!commandsWithoutConfig.includes(command)) {
     })
 }
 
+const approveCommand = require('./commands/approve').bind(
+    { logger },
+    api,
+    config,
+    region
+)
+
+const configCommand = require('./commands/config').bind(
+    { logger },
+    defaults.settingsPath
+)
+
+const helpCommand = require('./commands/help').bind({ logger })
+
+const setupCommand = require('./commands/setup').bind(
+    { logger },
+    api,
+    config,
+    region,
+    defaults
+)
+
+const submitCommand = require('./commands/submit').bind(
+    { logger },
+    api,
+    config,
+    region
+)
+
+const updateCommand = require('./commands/update').bind(
+    {
+        logger,
+        onForce: () => {
+            Promise.resolve()
+                .then(() => submitCommand())
+                .then(() => approveCommand())
+        }
+    },
+    api,
+    config,
+    region,
+    defaults
+)
+
+const removeCommand = require('./commands/remove').bind(
+    { logger },
+    api,
+    config,
+    region
+)
+
 const commands = {
-    approve: require('./commands/approve').bind(
-        { logger },
-        api,
-        config,
-        region
-    ),
-    config: require('./commands/config').bind(
-        { logger },
-        defaults.settingsPath
-    ),
-    help: require('./commands/help').bind({ logger }),
-    setup: require('./commands/setup').bind(
-        { logger },
-        api,
-        config,
-        region,
-        defaults
-    ),
-    submit: require('./commands/submit').bind({ logger }, api, config, region),
-    update: require('./commands/update').bind(
-        { logger },
-        api,
-        config,
-        region,
-        defaults
-    ),
-    remove: require('./commands/remove').bind({ logger }, api, config, region)
+    approve: approveCommand,
+    config: configCommand,
+    help: helpCommand,
+    setup: setupCommand,
+    submit: submitCommand,
+    update: updateCommand,
+    remove: removeCommand
 }
 
 // run the command
