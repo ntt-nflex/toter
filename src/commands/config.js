@@ -9,7 +9,7 @@ module.exports = config
 /**
  * Sets up global settings file
  *
- * @param  {[string]} settingsPath path to configuration file
+ * @param  {string} settingsPath path to configuration file
  */
 function config(settingsPath) {
     const usingFlags =
@@ -17,11 +17,12 @@ function config(settingsPath) {
 
     let settings = getFile(settingsPath) || { regions: {} }
 
-    if (usingFlags) {
-        generateConfigWithFlags(settings, settingsPath)
-    } else {
-        generateConfigWithoutFlags(settings, settingsPath)
-    }
+    return Promise.resolve().then(
+        () =>
+            usingFlags
+                ? generateConfigWithFlags(settings, settingsPath)
+                : generateConfigWithoutFlags(settings, settingsPath)
+    )
 }
 
 function generateConfigWithFlags(settings, settingsPath) {

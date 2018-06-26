@@ -5,14 +5,14 @@ module.exports = api
 /**
  * Calls CMP API endpoints via CURL commands
  *
- * @param  {[string]} endpoint part of url that specifies the endpoint
- * @param  {[object]} data payload to send. Defaults to false
- * @param  {[string]} method http method to use. Defaults to HTTP POST
- * @param  {[string]} contentType payload's content type. Defaults to application/json
- * @return {[object]} response payload
+ * @param  {string} endpoint part of url that specifies the endpoint
+ * @param  {object} data payload to send. Defaults to false
+ * @param  {string} method http method to use. Defaults to HTTP POST
+ * @param  {string} contentType payload's content type. Defaults to application/json
+ * @return {object} response payload
  */
 function api(endpoint, data = false, method = 'post', contentType = 'json') {
-    this.logger.debug(`HTTP ${method} ${endpoint}`) 
+    this.logger.debug(`HTTP ${method} ${endpoint}`)
     return new Promise((resolve, reject) => {
         const { key, secret, region } = this.credentials
         const tar1 =

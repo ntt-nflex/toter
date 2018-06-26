@@ -9,10 +9,8 @@ module.exports = setup
 /**
  * Sets up widget configuration file
  *
- * @param  {[function]} api api client
- * @param  {[object]} config configuration file's data
- * @param  {[string]} region region to filter the configuration file
- * @param  {[object]} defaults default values used throughout the project
+ * @param  {string} region region to filter the configuration file
+ * @param  {object} defaults default values used throughout the project
  */
 function setup(region, defaults) {
 
@@ -86,6 +84,34 @@ function setup(region, defaults) {
                     description = input
                     callback()
                 })
+            },
+            callback => {
+                rl.question(
+                    `Widget deployment location (pick one or many separated by comma) [${availableRegions.join(
+                        ','
+                    )}]: `,
+                    function(input) {
+                        input = input.replace(/(\s|\n|\t|\r)/g, '') || 'all'
+
+                        // using a Set here to avoid duplicate region entries
+                        let regions = new Set(input.trim().split(','))
+
+                        regions.forEach(region => {
+                            if (!availableRegions.includes(region)) {
+                                console.error('Invalid region', region)
+                                process.exit(1)
+                            }
+                        })
+
+                        // if all is set, no other region should be specified
+                        if (regions.has('all')) {
+                            regions = ['all']
+                        }
+
+                        distribution = Array.from(regions)
+                        callback()
+                    }
+                )
             }
         ],
         () => {
