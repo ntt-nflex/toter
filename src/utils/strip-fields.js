@@ -19,8 +19,8 @@ module.exports = stripFields
 /**
  * strips the a defined set of fields from a payload
  *
- * @param  {[object]} payload the payload whose fields are to be stripped off
- * @return {[object]} payload with stripped fields
+ * @param  {object} payload the payload whose fields are to be stripped off
+ * @return {object} payload with stripped fields
  */
 function stripFields(payload) {
     Object.keys(payload).forEach(key => {

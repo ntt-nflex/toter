@@ -5,9 +5,9 @@ module.exports = upload
 /**
  * Uploads widget for approval via HTTP endpoint based on configuration file
  *
- * @param  {[function]} api api client
- * @param  {[object]} config configuration file's data
- * @param  {[string]} region region to filter the configuration file
+ * @param  {function} api api client
+ * @param  {object} config configuration file's data
+ * @param  {string} region region to filter the configuration file
  */
 function upload(api, configPath, region) {
     this.logger.info(configPath)
