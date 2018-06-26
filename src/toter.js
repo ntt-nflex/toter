@@ -20,11 +20,10 @@ if (!verbose) {
 // only config and help commands do not require config.json
 // in order to be executed as intended
 
-const commandsWithoutConfig = ['config', 'help' ]
+const commandsWithoutConfig = ['config', 'help']
 
 let api, config
 if (!commandsWithoutConfig.includes(command)) {
-
     const defaultConfig = {
         [region]: {
             app_json: {
@@ -65,7 +64,7 @@ if (!commandsWithoutConfig.includes(command)) {
         folder: defaults.folder,
         logger: logger
     })
-} 
+}
 
 const commands = {
     approve: require('./commands/approve').bind(
@@ -94,18 +93,7 @@ const commands = {
         region,
         defaults
     ),
-    upload: require('./commands/upload').bind(
-        { logger },
-        api,
-        defaults.configPath,
-        region
-    ),
-    remove: require('./commands/remove').bind(
-        { logger },
-        api,
-        config,
-        region
-    )
+    remove: require('./commands/remove').bind({ logger }, api, config, region)
 }
 
 // run the command
