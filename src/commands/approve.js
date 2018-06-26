@@ -16,7 +16,7 @@ function approve(api, config, region) {
 
     const id = config[region].app_json.id
 
-    Promise.resolve()
+    return Promise.resolve()
         .then(() => api(`/api/apps/${id}/approve`))
         .then(res => {
             this.logger.debug(res)

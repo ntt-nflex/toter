@@ -35,17 +35,13 @@ function remove(api, config, region) {
     idApp = idApp.trim()
     idWidget = idWidget.trim()
 
-    removeProcess(this.logger, idApp, idWidget, api)
-}
-
-function removeProcess(logger, idApp, idWidget, api) {
-    Promise.resolve()
-        .then(() => removeBucket(logger, api, idWidget))
-        .then(() => removeWidget(logger, api, idWidget))
-        .then(() => removeApp(logger, api, idApp))
-        .then(() => logger.info('Widget deleted successfully!'))
+    return Promise.resolve()
+        .then(() => removeBucket(this.logger, api, idWidget))
+        .then(() => removeWidget(this.logger, api, idWidget))
+        .then(() => removeApp(this.logger, api, idApp))
+        .then(() => this.logger.info('Widget deleted successfully!'))
         .catch(err => {
-            logger.error('Unable to delete the widget:', err)
+            this.logger.error('Unable to delete the widget:', err)
             process.exit(1)
         })
 }

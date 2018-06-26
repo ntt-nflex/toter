@@ -16,7 +16,7 @@ function submit(api, config, region) {
 
     const id = config[region].app_json.id
 
-    Promise.resolve()
+    return Promise.resolve()
         .then(() => api(`/api/apps/${id}/submit`))
         .then(res => {
             this.logger.info('Widget submitted successfully')

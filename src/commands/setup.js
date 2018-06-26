@@ -70,14 +70,13 @@ function setup(api, config, region, defaults) {
                         }
 
                         distribution = Array.from(regions)
-                        console.info(distribution)
                         callback()
                     }
                 )
             }
         ],
         () => {
-            Promise.resolve()
+            return Promise.resolve()
                 .then(() => createApp(this.logger, api, name, description))
                 .then(res =>
                     createWidget(this.logger, api, res, defaults.widget)

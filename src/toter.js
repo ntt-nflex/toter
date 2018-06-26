@@ -99,8 +99,9 @@ const updateCommand = require('./commands/update').bind(
     {
         logger,
         onForce: () => {
-            approveCommand()
-            submitCommand()
+            Promise.resolve()
+                .then(() => submitCommand())
+                .then(() => approveCommand())
         }
     },
     api,
