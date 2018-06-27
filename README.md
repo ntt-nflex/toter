@@ -35,6 +35,19 @@ toter setup
 ```
 
 This will create a config.json file for you with the details of your App and Widget.
+You can have a schema added automatic to you config.json file if you add a schema.json file in you project folder with the schema inside.
+
+```sh
+{
+  "schema": [
+    {
+        "label": "azure_widget:physical_virtual",
+        "path": "details.server.is_virtual",
+        "type": "physicalVirtual"
+    }
+  ]
+}
+```
 
 ## Update your widget/app settings and contents
 
