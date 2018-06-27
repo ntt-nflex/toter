@@ -53,7 +53,6 @@ function setup(region, defaults) {
                             if(!input) {
                                 newRegion = defaults.region
                             } else {
-                                console.log("bi trqbvalo da e true");
                                 setDefaultRegion = true
                             }
 
@@ -103,10 +102,15 @@ function setup(region, defaults) {
         },
         (err, info) => {
 
+            if(err) {
+                this.logger.error('There has been a problem with toter setup ' 
+                + err)
+            }
+
             const settings = getFile(defaults.settingsPath) 
 
             if (!settings) {
-                console.error('No settings file found at', defaults.settingsPath)
+                this.logger.error('No settings file found at', defaults.settingsPath)
                 process.exit(1)
             }
 
