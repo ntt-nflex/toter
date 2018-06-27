@@ -2,25 +2,22 @@ const async = require('async')
 const { writeFileSync } = require('fs')
 const readline = require('readline')
 const stripFields = require('./../utils/strip-fields')
+const getFile = require('../utils/get-file')
 
 module.exports = setup
 
 /**
  * Sets up widget configuration file
  *
- * @param  {function} api api client
- * @param  {object} config configuration file's data
  * @param  {string} region region to filter the configuration file
  * @param  {object} defaults default values used throughout the project
  */
-function setup(api, config, region, defaults) {
+function setup(region, defaults) {
+
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
     })
-
-    let name, description, distribution
-
     const availableRegions = [
         'all',
         'ap',
@@ -32,21 +29,49 @@ function setup(api, config, region, defaults) {
         'sandbox',
         'us'
     ]
+    let config = {},
+        setDefaultRegion = false,
+        api
+        
     async.series(
-        [
-            callback => {
+        {       
+            region: callback => {
+
+                if(region !== defaults.region) {
+
+                    setDefaultRegion = true
+                    callback(null, region)
+
+                } else {
+
+                    rl.question(
+                        `Which region do you want to use? (default one is ${defaults.region}) `,
+                        function(input) {
+    
+                            let newRegion = input.trim()
+    
+                            if(!input) {
+                                newRegion = defaults.region
+                            } else {
+                                setDefaultRegion = true
+                            }
+
+                            callback(null, newRegion)
+                        }
+                    )
+                }
+            },
+            name: callback => {
                 rl.question('App/Widget name: ', function(input) {
-                    name = input
-                    callback()
+                    callback(null, input)
                 })
             },
-            callback => {
+            description: callback => {
                 rl.question('App/Widget description: ', function(input) {
-                    description = input
-                    callback()
+                    callback(null, input)
                 })
             },
-            callback => {
+            distribution: callback => {
                 rl.question(
                     `Widget deployment location (pick one or many separated by comma) [${availableRegions.join(
                         ','
@@ -69,27 +94,68 @@ function setup(api, config, region, defaults) {
                             regions = ['all']
                         }
 
-                        distribution = Array.from(regions)
-                        callback()
+                        regions = Array.from(regions)
+                        callback(null, regions)
                     }
                 )
             }
-        ],
-        () => {
+        },
+        (err, info) => {
+
+            if(err) {
+                this.logger.error('There has been a problem with toter setup ' 
+                + err)
+            }
+
+            const settings = getFile(defaults.settingsPath) 
+
+            if (!settings) {
+                this.logger.error('No settings file found at', defaults.settingsPath)
+                process.exit(1)
+            }
+
+            const credentials = require('../utils/credentials')(settings, info.region)
+
+            api = require('../api/api').bind({
+                credentials: credentials,
+                folder: defaults.folder,
+                logger: this.logger
+            })
+
             return Promise.resolve()
-                .then(() => createApp(this.logger, api, name, description))
-                .then(res =>
+                .then(() => createApp(this.logger, api, info.name, info.description))
+                .then(res => 
                     createWidget(this.logger, api, res, defaults.widget)
                 )
-                .then(res => createBucket(this.logger, api, res))
+                .then(res => 
+                    createBucket(this.logger, api, res)
+                )
                 .then(res => createBucketEntry(this.logger, api, res))
                 .then(res => uploadWidget(this.logger, api, res, defaults))
                 .then(res => {
-                    config[region].app_json = res.app
-                    config[region].app_json.distribution = distribution
 
-                    config[region].widget_json = stripFields(res.widget)
-                    config[region].widget_json.use_public_bucket = true
+                    let schema = getFile(defaults.schemaPath)
+
+                    if(setDefaultRegion) {
+                        config['region'] = info.region
+                    }
+
+                    config[info.region] = {
+                        app_json: {},
+                        widget_json: {
+                            use_public_widget: true
+                        }
+                    }
+
+                    config[info.region].app_json = res.app
+                    config[info.region].app_json.distribution = info.distribution
+
+                    config[info.region].widget_json = stripFields(res.widget)
+                    config[info.region].widget_json.use_public_bucket = true
+
+                    if(schema) {
+                        config[info.region].widget_json.schema = schema.schema
+                    } 
 
                     writeFileSync(
                         'config.json',
@@ -106,6 +172,7 @@ function setup(api, config, region, defaults) {
 }
 
 function createApp(logger, api, name, description, distribution = ['all']) {
+
     const app = {
         name,
         description,
@@ -124,6 +191,7 @@ function createApp(logger, api, name, description, distribution = ['all']) {
 }
 
 function createWidget(logger, api, settings, widgetDefaults) {
+
     const widget = Object.assign(
         {
             app_id: settings.app.id,
@@ -141,16 +209,21 @@ function createWidget(logger, api, settings, widgetDefaults) {
             .then(res => {
                 logger.debug(res)
                 logger.info('Created widget')
+                
                 resolve({
                     app: settings.app,
                     widget: stripFields(res)
                 })
             })
-            .catch(err => reject(err))
+            .catch(err => {
+                console.error(err)
+                reject(err)
+            })
     })
 }
 
 function createBucket(logger, api, settings) {
+
     const bucket = {
         type: 'shared',
         acl: [
