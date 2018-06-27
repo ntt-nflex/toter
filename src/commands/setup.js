@@ -134,7 +134,7 @@ function setup(region, defaults) {
                 .then(res => uploadWidget(this.logger, api, res, defaults))
                 .then(res => {
 
-                    let schema = getFile(defaults.schemaPath)
+                    const schema = getFile(defaults.schemaPath)
 
                     if(setDefaultRegion) {
                         config['region'] = info.region
