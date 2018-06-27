@@ -7,7 +7,7 @@ module.exports = isEmpty
  * @return {boolean} a boolean to show if a object is empty
  */
 function isEmpty(obj) {
-    for(var key in obj) {
+    for(const key in obj) {
         if(obj.hasOwnProperty(key))
             return false;
     }

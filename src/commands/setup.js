@@ -29,73 +29,50 @@ function setup(region, defaults) {
         'sandbox',
         'us'
     ]
-    let name,
-        description,
-        config = {},
-        api,
-        newRegion
+    let config = {},
+        setDefaultRegion = false,
+        api
         
     async.series(
+        {       
+            region: callback => {
 
-        [       
-            callback => {
                 if(region !== defaults.region) {
 
-                    newRegion = region
-                    config['region'] = newRegion
-                    config[newRegion] = {
-                        app_json: {
-                            distribution: ['all']
-                        },
-                        widget_json: {
-                            use_public_widget: true
-                        }
-                    }
-                    
-                    callback()
+                    setDefaultRegion = true
+                    callback(null, region)
+
                 } else {
 
                     rl.question(
                         `Which region do you want to use? (default one is ${defaults.region}) `,
                         function(input) {
     
-                            newRegion = input.trim()
+                            let newRegion = input.trim()
     
                             if(!input) {
-    
                                 newRegion = defaults.region
                             } else {
-    
-                                config['region'] = newRegion
+                                console.log("bi trqbvalo da e true");
+                                setDefaultRegion = true
                             }
-    
-                            config[newRegion] = {
-                                app_json: {
-                                    distribution: ['all']
-                                },
-                                widget_json: {
-                                    use_public_widget: true
-                                }
-                            }
-                            
-                            callback()
+
+                            callback(null, newRegion)
                         }
                     )
                 }
             },
-            callback => {
+            name: callback => {
                 rl.question('App/Widget name: ', function(input) {
-                    name = input
-                    callback()
+                    callback(null, input)
                 })
             },
-            callback => {
+            description: callback => {
                 rl.question('App/Widget description: ', function(input) {
-                    description = input
-                    callback()
+                    callback(null, input)
                 })
             },
-            callback => {
+            distribution: callback => {
                 rl.question(
                     `Widget deployment location (pick one or many separated by comma) [${availableRegions.join(
                         ','
@@ -118,13 +95,13 @@ function setup(region, defaults) {
                             regions = ['all']
                         }
 
-                        distribution = Array.from(regions)
-                        callback()
+                        regions = Array.from(regions)
+                        callback(null, regions)
                     }
                 )
             }
-        ],
-        () => {
+        },
+        (err, info) => {
 
             const settings = getFile(defaults.settingsPath) 
 
@@ -133,7 +110,7 @@ function setup(region, defaults) {
                 process.exit(1)
             }
 
-            const credentials = require('../utils/credentials')(settings, newRegion)
+            const credentials = require('../utils/credentials')(settings, info.region)
 
             api = require('../api/api').bind({
                 credentials: credentials,
@@ -142,7 +119,7 @@ function setup(region, defaults) {
             })
 
             return Promise.resolve()
-                .then(() => createApp(this.logger, api, name, description))
+                .then(() => createApp(this.logger, api, info.name, info.description))
                 .then(res => 
                     createWidget(this.logger, api, res, defaults.widget)
                 )
@@ -155,14 +132,25 @@ function setup(region, defaults) {
 
                     let schema = getFile(defaults.schemaPath)
 
-                    config[newRegion].app_json = res.app
-                    config[newRegion].app_json.distribution = ['all']
+                    if(setDefaultRegion) {
+                        config['region'] = info.region
+                    }
 
-                    config[newRegion].widget_json = stripFields(res.widget)
-                    config[newRegion].widget_json.use_public_bucket = true
+                    config[info.region] = {
+                        app_json: {},
+                        widget_json: {
+                            use_public_widget: true
+                        }
+                    }
+
+                    config[info.region].app_json = res.app
+                    config[info.region].app_json.distribution = info.distribution
+
+                    config[info.region].widget_json = stripFields(res.widget)
+                    config[info.region].widget_json.use_public_bucket = true
 
                     if(schema) {
-                        config[newRegion].widget_json.schema = schema.schema
+                        config[info.region].widget_json.schema = schema.schema
                     } 
 
                     writeFileSync(

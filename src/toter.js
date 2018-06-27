@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 const argv = require('minimist')(process.argv.slice(2))
 const defaults = require('./constants/defaults')
-const getFile = require('./utils/get-file')
-const isEmpty = require('./utils/empty-file')
 
 const command = argv._[0] || 'help'
 let region = argv.r || argv.region || defaults.region
@@ -24,6 +22,9 @@ const commandsWithoutConfig = ['config', 'help', 'setup']
 let api, config
 
 if (!commandsWithoutConfig.includes(command)) {
+
+    const isEmpty = require('./utils/empty-file')
+    const getFile = require('./utils/get-file')
     
     config = getFile(defaults.configPath)
 
