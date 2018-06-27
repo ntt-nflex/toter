@@ -54,6 +54,11 @@ if (!commandsWithoutConfig.includes(command)) {
         config[region].widget_json.schema = schema.schema
     }
 
+    writeFileSync(
+        'config.json',
+        JSON.stringify(config, null, 4)
+    )
+
     const settings = getFile(defaults.settingsPath)
 
     if (!settings) {
