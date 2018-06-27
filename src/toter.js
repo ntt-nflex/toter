@@ -23,7 +23,6 @@ let api, config
 
 if (!commandsWithoutConfig.includes(command)) {
 
-    const { writeFileSync } = require('fs')
     const isEmpty = require('./utils/empty-file')
     const getFile = require('./utils/get-file')
     
@@ -47,17 +46,6 @@ if (!commandsWithoutConfig.includes(command)) {
 
         region = config.region
     }
-
-    const schema = getFile(defaults.schemaPath)
-    
-    if(schema) {
-        config[region].widget_json.schema = schema.schema
-    }
-
-    writeFileSync(
-        'config.json',
-        JSON.stringify(config, null, 4)
-    )
 
     const settings = getFile(defaults.settingsPath)
 
