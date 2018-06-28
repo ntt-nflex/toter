@@ -1,5 +1,8 @@
 const argv = require('minimist')(process.argv.slice(2))
 const stripFields = require('./../utils/strip-fields')
+const getFile = require('../utils/get-file')
+const { writeFileSync } = require('fs')
+const isEmpty = require('../utils/empty-file')
 
 module.exports = update
 
@@ -17,6 +20,17 @@ function update(api, config, region, defaults) {
     if (!hasWidgetId) {
         this.logger.error('Please run setup first - widget has no ID')
         process.exit(1)
+    }
+
+    const schema = getFile(defaults.schemaPath)
+    
+    if(schema && !isEmpty(schema)) {
+        config[region].widget_json.schema = schema.schema
+
+        writeFileSync(
+            'config.json',
+            JSON.stringify(config, null, 4)
+        )
     }
 
     let app = config[region].app_json
