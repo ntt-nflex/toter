@@ -1,6 +1,8 @@
 const argv = require('minimist')(process.argv.slice(2))
 const stripFields = require('./../utils/strip-fields')
-const addSchema = require('../utils/add-schema')
+const getFile = require('../utils/get-file')
+const { writeFileSync } = require('fs')
+const isEmpty = require('../utils/empty-file')
 
 module.exports = update
 
@@ -20,11 +22,21 @@ function update(api, config, region, defaults) {
         process.exit(1)
     }
 
+    const schema = getFile(defaults.schemaPath)
+    
+    if(schema && !isEmpty(schema)) {
+        config[region].widget_json.schema = schema.schema
+
+        writeFileSync(
+            'config.json',
+            JSON.stringify(config, null, 4)
+        )
+    }
+
     let app = config[region].app_json
     let widget = config[region].widget_json
 
     return Promise.resolve()
-        .then(() => addSchema(config, region, defaults))
         .then(() => updateApp(this.logger, api, app))
         .then(settings =>
             updateWidget(this.logger, api, settings, widget, defaults)

@@ -3,7 +3,7 @@ const { writeFileSync } = require('fs')
 const readline = require('readline')
 const stripFields = require('./../utils/strip-fields')
 const getFile = require('../utils/get-file')
-const addSchema = require('../utils/add-schema')
+const isEmpty = require('../utils/empty-file')
 
 module.exports = setup
 
@@ -134,29 +134,39 @@ function setup(region, defaults) {
                 .then(res => createBucketEntry(this.logger, api, res))
                 .then(res => uploadWidget(this.logger, api, res, defaults))
                 .then(res => {
-                    return new Promise((resolve, reject) => {
 
-                        if(setDefaultRegion) {
-                            config['region'] = info.region
-                        }
-    
-                        config[info.region] = {
-                            app_json: {},
-                            widget_json: {
-                                use_public_widget: true
-                            }
-                        }
-    
-                        config[info.region].app_json = res.app
-                        config[info.region].app_json.distribution = info.distribution
-    
-                        config[info.region].widget_json = stripFields(res.widget)
-                        config[info.region].widget_json.use_public_bucket = true
+                    const schema = getFile(defaults.schemaPath)
 
-                        resolve(config)
-                    })
+                    if(setDefaultRegion) {
+                        config['region'] = info.region
+                    }
+
+                    config[info.region] = {
+                        app_json: {},
+                        widget_json: {
+                            use_public_widget: true
+                        }
+                    }
+
+                    config[info.region].app_json = res.app
+                    config[info.region].app_json.distribution = info.distribution
+
+                    config[info.region].widget_json = stripFields(res.widget)
+                    config[info.region].widget_json.use_public_bucket = true
+
+                    if(schema && !isEmpty(schema)) {
+
+                        config[info.region].widget_json.schema = schema.schema
+                    } else {
+
+                        this.logger.info(`Schema can be added automatically by adding schema.json file in the project folder.`)
+                    }
+
+                    writeFileSync(
+                        'config.json',
+                        JSON.stringify(config, null, 4)
+                    )
                 })
-                .then(res => addSchema(res, info.region, defaults))
                 .catch(err => {
                     this.logger.error(err)
                     process.exit(1)
