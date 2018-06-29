@@ -10,6 +10,7 @@ commands:
     submit          Submit your widget for review
     update          Updates the contents of your dist/ folder to StormDrive and
                     app and widget configurations to Marketplace
+    approve         approving a widget triggering a multi region sync
     -f --force      Update also submits and approves the widget
     remove          Remove your widget and app from marketplace
     -w --idWidget   Set the id of the widget when used with remove
