@@ -25,7 +25,7 @@ function config(settingsPath) {
 }
 
 function generateConfigWithFlags(settings, settingsPath) {
-    settings.regions[argv.r || 'default'] = {
+    settings.regions[argv.r || argv.region ||'default'] = {
         region: argv.u || argv.url,
         key: argv.k || argv.key,
         secret: argv.s || argv.secret
