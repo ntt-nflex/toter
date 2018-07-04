@@ -14,7 +14,6 @@ module.exports = config
 function config(settingsPath) {
     const usingFlags =
         (argv.u || argv.url) && (argv.k || argv.key) && (argv.s || argv.secret)
-
     let settings = getFile(settingsPath) || { regions: {} }
 
     return Promise.resolve().then(
@@ -26,7 +25,7 @@ function config(settingsPath) {
 }
 
 function generateConfigWithFlags(settings, settingsPath) {
-    settings.regions[argv.n || 'default'] = {
+    settings.regions[argv.r || 'default'] = {
         region: argv.u || argv.url,
         key: argv.k || argv.key,
         secret: argv.s || argv.secret
