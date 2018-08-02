@@ -63,12 +63,22 @@ function setup(region, defaults) {
                 }
             },
             name: callback => {
-                rl.question('App/Widget name: ', function(input) {
+                rl.question('App/Widget name (en): ', function(input) {
                     callback(null, input)
                 })
             },
             description: callback => {
-                rl.question('App/Widget description: ', function(input) {
+                rl.question('App/Widget description: (en): ', function(input) {
+                    callback(null, input)
+                })
+            },
+            nameJa: callback => {
+                rl.question('App/Widget name (ja): ', function(input) {
+                    callback(null, input)
+                })
+            },
+            descriptionJa: callback => {
+                rl.question('App/Widget description (ja): ', function(input) {
                     callback(null, input)
                 })
             },
@@ -104,8 +114,8 @@ function setup(region, defaults) {
         (err, info) => {
 
             if(err) {
-                this.logger.error('There has been a problem with toter setup '
-                + err)
+                this.logger.error('There has been a problem with toter setup ',
+                err)
             }
 
             const settings = getFile(defaults.settingsPath)
@@ -205,6 +215,10 @@ function createWidget(logger, api, settings, widgetDefaults) {
                 en: {
                     title: settings.app.name,
                     description: settings.app.description
+                },
+                ja: {
+                    title: settings.app.nameJa || settings.app.name,
+                    description: setting.app.descriptionJa || settings.app.name
                 }
             },
             type: 'marketplace',
