@@ -218,7 +218,7 @@ function createWidget(logger, api, settings, widgetDefaults) {
                 },
                 ja: {
                     title: settings.app.nameJa || settings.app.name,
-                    description: setting.app.descriptionJa || settings.app.name
+                    description: settings.app.descriptionJa || settings.app.name
                 }
             },
             type: 'marketplace',
