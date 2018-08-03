@@ -33,9 +33,9 @@ function setup(region, defaults) {
     let config = {},
         setDefaultRegion = false,
         api
-        
+
     async.series(
-        {       
+        {
             region: callback => {
 
                 if(region !== defaults.region) {
@@ -48,9 +48,9 @@ function setup(region, defaults) {
                     rl.question(
                         `Which region do you want to use? (default one is ${defaults.region}) `,
                         function(input) {
-    
+
                             let newRegion = input.trim()
-    
+
                             if(!input) {
                                 newRegion = defaults.region
                             } else {
@@ -63,12 +63,22 @@ function setup(region, defaults) {
                 }
             },
             name: callback => {
-                rl.question('App/Widget name: ', function(input) {
+                rl.question('App/Widget name (en): ', function(input) {
                     callback(null, input)
                 })
             },
             description: callback => {
-                rl.question('App/Widget description: ', function(input) {
+                rl.question('App/Widget description: (en): ', function(input) {
+                    callback(null, input)
+                })
+            },
+            nameJa: callback => {
+                rl.question('App/Widget name (ja): ', function(input) {
+                    callback(null, input)
+                })
+            },
+            descriptionJa: callback => {
+                rl.question('App/Widget description (ja): ', function(input) {
                     callback(null, input)
                 })
             },
@@ -104,11 +114,11 @@ function setup(region, defaults) {
         (err, info) => {
 
             if(err) {
-                this.logger.error('There has been a problem with toter setup ' 
-                + err)
+                this.logger.error('There has been a problem with toter setup ',
+                err)
             }
 
-            const settings = getFile(defaults.settingsPath) 
+            const settings = getFile(defaults.settingsPath)
 
             if (!settings) {
                 this.logger.error('No settings file found at', defaults.settingsPath)
@@ -125,10 +135,10 @@ function setup(region, defaults) {
 
             return Promise.resolve()
                 .then(() => createApp(this.logger, api, info.name, info.description))
-                .then(res => 
+                .then(res =>
                     createWidget(this.logger, api, res, defaults.widget)
                 )
-                .then(res => 
+                .then(res =>
                     createBucket(this.logger, api, res)
                 )
                 .then(res => createBucketEntry(this.logger, api, res))
@@ -200,9 +210,17 @@ function createWidget(logger, api, settings, widgetDefaults) {
     const widget = Object.assign(
         {
             app_id: settings.app.id,
-            description: settings.app.description,
             source: 'test',
-            title: settings.app.name,
+            translations: {
+                en: {
+                    title: settings.app.name,
+                    description: settings.app.description
+                },
+                ja: {
+                    title: settings.app.nameJa || settings.app.name,
+                    description: setting.app.descriptionJa || settings.app.name
+                }
+            },
             type: 'marketplace',
             use_public_bucket: true
         },
@@ -214,7 +232,7 @@ function createWidget(logger, api, settings, widgetDefaults) {
             .then(res => {
                 logger.debug(res)
                 logger.info('Created widget')
-                
+
                 resolve({
                     app: settings.app,
                     widget: stripFields(res)
