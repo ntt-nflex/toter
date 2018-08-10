@@ -138,11 +138,12 @@ function setup(region, defaults) {
                 en: {
                     title: info.title,
                     description: info.description
-                },
-                ja: {
-                    title: info.titleJa || info.title,
-                    description: info.descriptionJa ||
-                        info.description
+                }
+            };
+            if(info.titleJa && info.descriptionJa) {
+                translations['ja'] = {
+                    title: info.titleJa,
+                    description: info.descriptionJa
                 }
             }
 
