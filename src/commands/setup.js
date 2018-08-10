@@ -141,7 +141,7 @@ function setup(region, defaults) {
                 }
             };
             if(info.titleJa && info.descriptionJa) {
-                translations['ja'] = {
+                translations.ja = {
                     title: info.titleJa,
                     description: info.descriptionJa
                 }
