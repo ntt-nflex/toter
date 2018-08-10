@@ -8,7 +8,6 @@ const strippedFields = [
     'status',
     'subscribers',
     'tag',
-    'translations',
     'type',
     'updated_at',
     'user_id'

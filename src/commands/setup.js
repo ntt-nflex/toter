@@ -30,6 +30,7 @@ function setup(region, defaults) {
         'sandbox',
         'us'
     ]
+
     let config = {},
         setDefaultRegion = false,
         api
@@ -62,7 +63,7 @@ function setup(region, defaults) {
                     )
                 }
             },
-            name: callback => {
+            title: callback => {
                 rl.question('App/Widget name (en): ', function(input) {
                     callback(null, input)
                 })
@@ -72,7 +73,7 @@ function setup(region, defaults) {
                     callback(null, input)
                 })
             },
-            nameJa: callback => {
+            titleJa: callback => {
                 rl.question('App/Widget name (ja): ', function(input) {
                     callback(null, input)
                 })
@@ -133,10 +134,24 @@ function setup(region, defaults) {
                 logger: this.logger
             })
 
+            const translations = {
+                en: {
+                    title: info.title,
+                    description: info.description
+                }
+            };
+            if(info.titleJa && info.descriptionJa) {
+                translations.ja = {
+                    title: info.titleJa,
+                    description: info.descriptionJa
+                }
+            }
+
             return Promise.resolve()
-                .then(() => createApp(this.logger, api, info.name, info.description))
+                .then(() => createApp(this.logger, api, translations))
                 .then(res =>
-                    createWidget(this.logger, api, res, defaults.widget)
+                    createWidget(this.logger, api, res, translations,
+                        defaults.widget)
                 )
                 .then(res =>
                     createBucket(this.logger, api, res)
@@ -186,9 +201,12 @@ function setup(region, defaults) {
     )
 }
 
-function createApp(logger, api, name, description, distribution = ['all']) {
+function createApp(logger, api, translations, distribution = ['all']) {
 
-    const app = {
+
+    const name = translations.en.title,
+        description = translations.en.description,
+        app = {
         name,
         description,
         distribution
@@ -205,23 +223,13 @@ function createApp(logger, api, name, description, distribution = ['all']) {
     })
 }
 
-function createWidget(logger, api, settings, widgetDefaults) {
+function createWidget(logger, api, settings, translations, widgetDefaults) {
 
     const widget = Object.assign(
         {
             app_id: settings.app.id,
             source: 'test',
-            translations: {
-                en: {
-                    title: settings.app.name,
-                    description: settings.app.description
-                },
-                ja: {
-                    title: settings.app.nameJa || settings.app.name,
-                    description: settings.app.descriptionJa ||
-                        settings.app.description
-                }
-            },
+            translations: translations,
             type: 'marketplace',
             use_public_bucket: true
         },
