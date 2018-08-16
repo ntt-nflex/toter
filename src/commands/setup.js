@@ -202,8 +202,6 @@ function setup(region, defaults) {
 }
 
 function createApp(logger, api, translations, distribution = ['all']) {
-
-
     const name = translations.en.title,
         description = translations.en.description,
         app = {
