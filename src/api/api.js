@@ -22,9 +22,10 @@ function api(endpoint, data = false, method = 'post', contentType = 'json') {
         const tar2 = contentType === 'x-tgz' ? '-T -' : ''
         const dataString = data ? "-d '" + JSON.stringify(data) + "'" : ''
         const secureString = isIP(region) ? '-k ' : ''
+        const toterVersion = 'toter-1.5.1'
 
         // TODO: refactor curl logic into http client
-        const curlCommand = `${tar1} curl -u ${key}:${secret} https://${region}/cmp/basic${endpoint} ${secureString} -X ${method.toUpperCase()} -H "Content-Type:application/${contentType}" ${dataString} ${tar2}`
+        const curlCommand = `${tar1} curl -u ${key}:${secret} https://${region}/cmp/basic${endpoint} ${secureString} -X ${method.toUpperCase()} -H "Content-Type:application/${contentType}" --user-agent "${toterVersion}" ${dataString} ${tar2}`
 
         let response = execSync(curlCommand, {
             // using pipe here so that the curl command
