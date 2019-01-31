@@ -43,9 +43,9 @@ function setup(region, defaults) {
                 } else {
                     rl.question(
                         `Which region do you want to use? (default one is ${
-                            defaults.region
+                        defaults.region
                         }) `,
-                        function(input) {
+                        function (input) {
                             let newRegion = input.trim();
 
                             if (!input) {
@@ -60,22 +60,22 @@ function setup(region, defaults) {
                 }
             },
             title: callback => {
-                rl.question('App/Widget name (en): ', function(input) {
+                rl.question('App/Widget name (en): ', function (input) {
                     callback(null, input);
                 });
             },
             description: callback => {
-                rl.question('App/Widget description: (en): ', function(input) {
+                rl.question('App/Widget description: (en): ', function (input) {
                     callback(null, input);
                 });
             },
             titleJa: callback => {
-                rl.question('App/Widget name (ja): ', function(input) {
+                rl.question('App/Widget name (ja): ', function (input) {
                     callback(null, input);
                 });
             },
             descriptionJa: callback => {
-                rl.question('App/Widget description (ja): ', function(input) {
+                rl.question('App/Widget description (ja): ', function (input) {
                     callback(null, input);
                 });
             },
@@ -84,7 +84,7 @@ function setup(region, defaults) {
                     `Widget deployment location (pick one or many separated by comma) [${availableRegions.join(
                         ','
                     )}]: `,
-                    function(input) {
+                    function (input) {
                         input = input.replace(/(\s|\n|\t|\r)/g, '') || 'all';
 
                         // using a Set here to avoid duplicate region entries
@@ -294,16 +294,17 @@ function createBucketEntry(logger, api, settings) {
 function uploadWidget(logger, api, settings, defaults) {
     let widgetSettings = Object.assign({}, settings.widget);
 
-    // widget id should not be passed into the payload
+    // widget id and app_id should not be passed into the payload
     // due to error key 'id' is invalid to update
     delete widgetSettings.id;
+    delete widgetSettings.app_id;
 
     const widget = Object.assign(defaults.widget, widgetSettings, {
         type: 'marketplace',
         // the bucket was created with using the widget's id as name
         source: `/cmp/api/storage/buckets/${settings.widget.id}/${
             defaults.entry
-        }`
+            }`
     });
 
     return new Promise((resolve, reject) =>
